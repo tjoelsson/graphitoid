@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2012 Tomas Joelsson
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<resources>
+  <string name="app_name">Graphitoid</string>
+  <string name="settings_menu_targets">Select Targets</string>
+  <string name="targets_menu_reload">Reload Targets</string>
+  <string name="targets_menu_datetime">Set Interval</string>
+  <string name="targets_menu_clear">Clear Selection</string>
+	<string name="targets_menu_plot">Plot Graph</string>
+  <string name="graph_menu_reload">Reload</string>
+  <string name="graph_menu_targets">Edit Targets</string>
+  <string name="set_preferences">Settings</string>
+  <string name="connection_error">Connection failed. Try changing the server URL.</string>
+  <string name="update_settings_error">Something went wrong. Check settings.</string>
+  <string name="no_settings_error">Start by setting your preferences.</string>
+  <string name="interval_start_header">Start</string>
+	<string name="interval_end_header">End</string>
+</resources>
+

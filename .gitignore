@@ -1,0 +1,11 @@
+.DS_Store
+.classpath
+.project
+.settings
+/gen
+/bin
+/default.properties
+/local.properties
+/project.properties
+/libs/*
+
