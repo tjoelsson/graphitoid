@@ -25,12 +25,12 @@ import pl.polidea.treeview.InMemoryTreeStateManager;
 import pl.polidea.treeview.TreeBuilder;
 import pl.polidea.treeview.TreeViewList;
 import android.app.Activity;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.FragmentActivity;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,20 +38,18 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
-import com.googlecode.android.widgets.DateSlider.DateSlider;
 import com.tnc.android.graphite.R;
 import com.tnc.android.graphite.controllers.TargetsController;
+import com.tnc.android.graphite.fragments.IntervalDialogFragment;
 import com.tnc.android.graphite.lists.TargetsTreeAdapter;
 import com.tnc.android.graphite.models.Target;
 import com.tnc.android.graphite.utils.ErrorMessage;
-import com.tnc.android.graphite.utils.IntervalPickerSlider;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
 
 
-public class TargetsActivity extends Activity implements Handler.Callback, BaseActivity
+public class TargetsActivity extends FragmentActivity implements Handler.Callback, BaseActivity
 {
-
-  final private int INTERVAL_DIALOG_START=101;
+  final private int INTERVAL_DIALOG_FROM=101;
   final private int INTERVAL_DIALOG_TO=102;
 
   private Calendar intervalFrom=null;
@@ -129,7 +127,18 @@ public class TargetsActivity extends Activity implements Handler.Callback, BaseA
         controller.handleMessage(TargetsController.MESSAGE_RELOAD_TARGETS);
         break;
       case R.id.targets_menu_datetime:
-        showDialog(INTERVAL_DIALOG_START);
+        Calendar input;
+        if(null!=intervalFrom)
+        {
+          input=(Calendar)intervalFrom.clone();
+        }
+        else
+        {
+          input=Calendar.getInstance();
+        }
+        IntervalDialogFragment dialog=new IntervalDialogFragment(this, input,
+          INTERVAL_DIALOG_FROM, getString(R.string.interval_from_header));
+        dialog.show(getSupportFragmentManager(), "from_dialog");
         break;
       case R.id.targets_menu_clear:
         selected.clear();
@@ -307,54 +316,30 @@ public class TargetsActivity extends Activity implements Handler.Callback, BaseA
     this.finish();
   }
 
-  private DateSlider.OnDateSetListener mStartTimeListener=
-    new DateSlider.OnDateSetListener() {
-      public void onDateSet(DateSlider view, Calendar selectedDate)
-      {
-        intervalFrom=selectedDate;
-        showDialog(INTERVAL_DIALOG_TO);
-      }
-    };
-
-  private DateSlider.OnDateSetListener mEndTimeListener=
-    new DateSlider.OnDateSetListener() {
-      public void onDateSet(DateSlider view, Calendar selectedDate)
-      {
-        intervalTo=selectedDate;
-      }
-    };
-
-  @Override
-  protected Dialog onCreateDialog(int id)
+  public void intervalDialogCallback(Calendar cal, int type)
   {
-    switch(id)
+    switch(type)
     {
-      case INTERVAL_DIALOG_START:
-        Calendar from;
-        if(null!=intervalFrom)
-        {
-          from=intervalFrom;
-        }
-        else
-        {
-          from=Calendar.getInstance();
-        }
-        return new IntervalPickerSlider(this, mStartTimeListener, from,
-          getString(R.string.interval_start_header));
-      case INTERVAL_DIALOG_TO:
-        Calendar to;
+      case INTERVAL_DIALOG_FROM:
+        intervalFrom=cal;
+        Calendar input;
         if(null!=intervalTo)
         {
-          to=intervalTo;
+          input=(Calendar)intervalTo.clone();
         }
         else
         {
-          to=Calendar.getInstance();
+          input=Calendar.getInstance();
         }
-        return new IntervalPickerSlider(this, mEndTimeListener, to,
-          getString(R.string.interval_end_header));
+
+        IntervalDialogFragment dialog=new IntervalDialogFragment(this, input,
+          INTERVAL_DIALOG_TO, getString(R.string.interval_to_header));
+        dialog.show(getSupportFragmentManager(), "to_dialog");
+        break;
+      case INTERVAL_DIALOG_TO:
+        intervalTo=cal;
+        break;
     }
-    return null;
   }
 
   private int calcLevel(Target target)

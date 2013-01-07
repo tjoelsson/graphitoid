@@ -27,7 +27,7 @@
   <string name="connection_error">Connection failed. Try changing the server URL.</string>
   <string name="update_settings_error">Something went wrong. Check settings.</string>
   <string name="no_settings_error">Start by setting your preferences.</string>
-  <string name="interval_start_header">Start</string>
-	<string name="interval_end_header">End</string>
+  <string name="interval_from_header">Start</string>
+	<string name="interval_to_header">End</string>
 </resources>
 
