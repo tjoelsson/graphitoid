@@ -20,19 +20,19 @@ package com.tnc.android.graphite;
 import java.util.HashMap;
 import android.app.Application;
 import android.content.Context;
-import com.tnc.android.graphite.models.Graph;
+import com.tnc.android.graphite.models.DrawableGraph;
 
 
 public class GraphiteApp extends Application
 {
   private static GraphiteApp instance;
-  private HashMap<Integer, Graph> graphHolder;
+  private HashMap<Integer, DrawableGraph> graphHolder;
 
   public void onCreate()
   {
     super.onCreate();
     instance=this;
-    graphHolder=new HashMap<Integer, Graph>();
+    graphHolder=new HashMap<Integer, DrawableGraph>();
   }
 
   public static GraphiteApp getInstance()
@@ -45,7 +45,7 @@ public class GraphiteApp extends Application
     return instance.getApplicationContext();
   }
 
-  public HashMap<Integer, Graph> getGraphHolder()
+  public HashMap<Integer, DrawableGraph> getGraphHolder()
   {
     return graphHolder;
   }

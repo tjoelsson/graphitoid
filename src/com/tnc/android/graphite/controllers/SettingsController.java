@@ -89,6 +89,8 @@ public class SettingsController extends Controller
     String httpUsername = prefs.getString("http_user", "");
     String httpPassword = prefs.getString("http_pass", "");
     
+    // TODO: Use a single message to trigger update. Read all preferences
+    // from activity class instead of sending strings. Use UI thread.
     notifyOutboxHandlers(MESSAGE_UPDATE_HTTP_USER, 0, 0, httpUsername);
     notifyOutboxHandlers(MESSAGE_UPDATE_HTTP_PASS, 0, 0, httpPassword);
     

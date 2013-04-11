@@ -19,6 +19,7 @@ package com.tnc.android.graphite.activities;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -29,10 +30,11 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ImageView;
 import com.tnc.android.graphite.R;
 import com.tnc.android.graphite.controllers.GraphController;
-import com.tnc.android.graphite.models.Graph;
-import com.tnc.android.graphite.models.GraphiteChart;
+import com.tnc.android.graphite.models.DrawableGraph;
 import com.tnc.android.graphite.utils.ErrorMessage;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
 
@@ -42,19 +44,20 @@ public class GraphActivity extends Activity implements Handler.Callback, BaseAct
   final static int DATE_TIME=104;
 
   private GraphController controller;
-  private Graph model;
-
+  private DrawableGraph model;
   private ProgressDialog dialog;
   private GestureDetector gestureDetector;
 
   @Override
   public void onCreate(Bundle savedInstanceState)
   {
-    requestWindowFeature(Window.FEATURE_NO_TITLE);
     super.onCreate(savedInstanceState);
+    requestWindowFeature(Window.FEATURE_NO_TITLE);
+    this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+      WindowManager.LayoutParams.FLAG_FULLSCREEN);
     setContentView(R.layout.plain);
-
-    model=new Graph();
+    
+    model = new DrawableGraph();
     controller=new GraphController(model);
     controller.addOutboxHandler(new Handler(this));
     controller.handleMessage(
@@ -92,6 +95,14 @@ public class GraphActivity extends Activity implements Handler.Callback, BaseAct
   }
 
   @Override
+  public void onConfigurationChanged(Configuration conf)
+  {
+    super.onConfigurationChanged(conf);
+    cancelDialog();
+    controller.handleMessage(GraphController.MESSAGE_CONFIG_UPDATE);
+  }
+  
+  @Override
   public boolean handleMessage(Message msg)
   {
     final Activity me=this;
@@ -117,13 +128,7 @@ public class GraphActivity extends Activity implements Handler.Callback, BaseAct
         });
         return true;
       case GraphController.MESSAGE_STOP_LOADING:
-        runOnUiThread(new Runnable() {
-          @Override
-          public void run()
-          {
-            dialog.cancel();
-          }
-        });
+        cancelDialog();
         return true;
       case GraphController.MESSAGE_FAIL_GO_BACK:
         ErrorMessage.displayRaw(me, msg.obj.toString());
@@ -133,12 +138,27 @@ public class GraphActivity extends Activity implements Handler.Callback, BaseAct
     return false;
   }
 
+  private void cancelDialog()
+  {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run()
+      {
+        if(null!=dialog)
+        {
+          dialog.cancel();
+        }
+      }
+    });
+  }
+
   private void plotGraph()
   {
-    GraphiteChart chart=new GraphiteChart();
-    View graphView=chart.createView(this, model);
+    ImageView graphView = new ImageView(this);
+    graphView.setImageDrawable(model.getImage());
+    graphView.setScaleType(ImageView.ScaleType.FIT_XY);
     setContentView(graphView);
-
+    
     graphView.setOnTouchListener(new View.OnTouchListener() {
       public boolean onTouch(View v, MotionEvent event)
       {

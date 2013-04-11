@@ -19,13 +19,16 @@ package com.tnc.android.graphite.controllers;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.preference.PreferenceManager;
+import android.view.Display;
+import android.view.WindowManager;
 import com.tnc.android.graphite.GraphiteApp;
-import com.tnc.android.graphite.models.Graph;
+import com.tnc.android.graphite.models.DrawableGraph;
 import com.tnc.android.graphite.models.GraphiteQuery;
 import com.tnc.android.graphite.utils.GraphiteConnection;
 
@@ -43,14 +46,16 @@ public class GraphController extends Controller
   public static final int MESSAGE_STOP_LOADING=4;
   public static final int MESSAGE_RELOAD=5;
   public static final int MESSAGE_FAIL_GO_BACK=6;
+  public static final int MESSAGE_CONFIG_UPDATE=7;
 
   private String serverUrl;
-  private Graph model;
+  private DrawableGraph model;
   private ArrayList<String> targetStrings;
   private Calendar intervalFrom=null;
   private Calendar intervalTo=null;
+  private boolean graphDisplayed=false;
 
-  public GraphController(Graph model)
+  public GraphController(DrawableGraph model)
   {
     workerThread=new HandlerThread("Graph Worker Thread");
     workerThread.start();
@@ -70,7 +75,10 @@ public class GraphController extends Controller
 
   private void plotGraph()
   {
-    notifyOutboxHandlers(MESSAGE_START_LOADING, 0, 0, null);
+    if(!graphDisplayed)
+    {
+      notifyOutboxHandlers(MESSAGE_START_LOADING, 0, 0, null);
+    }
     workerHandler.post(new Runnable() {
       @Override
       public void run()
@@ -85,11 +93,32 @@ public class GraphController extends Controller
           query.setFromCalendar(intervalFrom);
           query.setUntilCalendar(intervalTo);
         }
-        String paramString=query.getParamString(true);
+        WindowManager wm=(WindowManager)GraphiteApp.getContext().getSystemService(
+          Context.WINDOW_SERVICE);
+        Display display=wm.getDefaultDisplay();
+        
+        int width;
+        int height;
+//        if(android.os.Build.VERSION.SDK_INT >= 13)
+//        {
+//          Point size=new Point();
+//          display.getSize(size);
+//          width=size.x;
+//          height=size.y;
+//        }
+//        else
+//        {
+        width=display.getWidth();
+        height=display.getHeight();
+//        }
+        query.setWidth(width);
+        query.setHeight(height);
+        
+        String paramString=query.getParamString();
         // Get from memory
-        Graph graph=GraphiteApp.getInstance().getGraphHolder().get(
+        DrawableGraph graph=GraphiteApp.getInstance().getGraphHolder().get(
           (serverUrl+paramString).hashCode()
-          );
+        );
         if(null==graph)
         {
           // Get from server
@@ -98,7 +127,7 @@ public class GraphController extends Controller
             graph=GraphiteConnection.getGraph(
               serverUrl,
               paramString
-              );
+            );
           }
           catch(Exception e)
           {
@@ -107,21 +136,16 @@ public class GraphController extends Controller
             notifyOutboxHandlers(MESSAGE_FAIL_GO_BACK, 0, 0, e);
           }
         }
-        if(null==graph)
-        {
-          // TODO error handling
-          notifyOutboxHandlers(MESSAGE_STOP_LOADING, 0, 0, null);
-          System.err.println("Failed getting graph data");
-        }
-        else
+        
+        notifyOutboxHandlers(MESSAGE_STOP_LOADING, 0, 0, null);
+        
+        if(null!=graph)
         {
           model.consume(graph);
           GraphiteApp.getInstance().getGraphHolder().put(
-            (serverUrl+paramString).hashCode(),
-            graph
-            );
-          notifyOutboxHandlers(MESSAGE_STOP_LOADING, 0, 0, null);
+            (serverUrl+paramString).hashCode(), graph);
           notifyOutboxHandlers(MESSAGE_PLOT_GRAPH, 0, 0, null);
+          graphDisplayed=true;
         }
       }
     });
@@ -134,6 +158,7 @@ public class GraphController extends Controller
       case MESSAGE_RELOAD:
         // TODO use hash to only remove current graph
         GraphiteApp.getInstance().getGraphHolder().clear();
+        graphDisplayed=false;
         plotGraph();
         return true;
       case MESSAGE_VIEW_READY:
@@ -141,6 +166,9 @@ public class GraphController extends Controller
         targetStrings=extras.getStringArrayList("targets");
         intervalFrom=(Calendar)extras.getSerializable("from");
         intervalTo=(Calendar)extras.getSerializable("to");
+        plotGraph();
+        return true;
+      case MESSAGE_CONFIG_UPDATE:
         plotGraph();
         return true;
     }

@@ -22,12 +22,11 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import com.tnc.android.graphite.models.Graph;
+import android.graphics.drawable.Drawable;
+import com.tnc.android.graphite.models.DrawableGraph;
 import com.tnc.android.graphite.models.Target;
 
 
@@ -85,60 +84,19 @@ public class GraphiteConnection
     }
   }
 
-  public static Graph getGraph(String serverUrl, String ps)
+  public static DrawableGraph getGraph(String serverUrl, String ps)
     throws Exception
   {
-    BufferedReader reader=getReader(serverUrl+GRAPH_PARAM_STRING+ps);
-
-    List<List<Double>> values=new ArrayList<List<Double>>();
-    List<String> names=new ArrayList<String>();
-    List<Integer> steps=new ArrayList<Integer>();
-    String line;
-    int from=-1;
-    int to=-1;
-    while((line=reader.readLine())!=null)
-    {
-      String[] lineArray=line.split("\\|");
-      String[] infoArray=lineArray[0].split(",");
-      String name=infoArray[0];
-      if(0>from)
-      {
-        from=Integer.valueOf(infoArray[1]).intValue();
-        to=Integer.valueOf(infoArray[2]).intValue();
-      }
-      List<Double> valueList=parseData(lineArray[1]);
-      if(false==valueList.isEmpty()) {
-        names.add(name);
-        steps.add(Integer.valueOf(infoArray[3]));
-        values.add(valueList);
-      }
-    }
-
-    Graph g=new Graph();
-    g.setValues(values);
-    g.setNames(names);
-    g.setSteps(steps);
-    g.setFrom(from);
-    g.setTo(to);
-
-    return g;
+    URL url=new URL(serverUrl+GRAPH_PARAM_STRING+ps);
+    HttpURLConnection http=(HttpURLConnection)url.openConnection();
+    http.setConnectTimeout(30000);
+    http.setReadTimeout(30000);
+    Drawable image=Drawable.createFromStream(http.getInputStream(), null);
+    DrawableGraph dg=new DrawableGraph();
+    dg.setImage(image);
+    return dg;
   }
-
-  private static List<Double> parseData(String dataString)
-  {
-    StringTokenizer st=new StringTokenizer(dataString, ",");
-    List<Double> valueList=new ArrayList<Double>();
-    while(st.hasMoreTokens())
-    {
-      String tok=st.nextToken();
-      if(false==tok.equals("None"))
-      {
-        valueList.add(Double.valueOf(tok));
-      }
-    }
-    return valueList;
-  }
-
+  
   private static BufferedReader getReader(String urlString)
     throws Exception
   {
