@@ -17,10 +17,12 @@
 <resources>
   <string name="app_name">Graphitoid</string>
   <string name="settings_menu_targets">Select Targets</string>
+  <string name="settings_http_user_summary">HTTP Username</string>
+  <string name="settings_http_pass_summary">HTTP Password</string>
   <string name="targets_menu_reload">Reload Targets</string>
   <string name="targets_menu_datetime">Set Interval</string>
   <string name="targets_menu_clear">Clear Selection</string>
-	<string name="targets_menu_plot">Plot Graph</string>
+  <string name="targets_menu_plot">Plot Graph</string>
   <string name="graph_menu_reload">Reload</string>
   <string name="graph_menu_targets">Edit Targets</string>
   <string name="set_preferences">Settings</string>
@@ -28,6 +30,5 @@
   <string name="update_settings_error">Something went wrong. Check settings.</string>
   <string name="no_settings_error">Start by setting your preferences.</string>
   <string name="interval_from_header">Start</string>
-	<string name="interval_to_header">End</string>
+  <string name="interval_to_header">End</string>
 </resources>
-

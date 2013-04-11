@@ -60,7 +60,7 @@ public class GraphActivity extends Activity implements Handler.Callback, BaseAct
     controller.handleMessage(
       GraphController.MESSAGE_VIEW_READY,
       this.getIntent().getExtras()
-      );
+    );
 
     SwipeGestureListener sgl=new SwipeGestureListener(this);
     gestureDetector=new GestureDetector(sgl);

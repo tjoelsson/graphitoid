@@ -19,6 +19,9 @@ package com.tnc.android.graphite.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.preference.EditTextPreference;
 import android.preference.PreferenceActivity;
 import android.view.GestureDetector;
 import android.view.Menu;
@@ -32,7 +35,7 @@ import com.tnc.android.graphite.controllers.SettingsController;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
 
 
-public class SettingsActivity extends PreferenceActivity implements BaseActivity
+public class SettingsActivity extends PreferenceActivity implements Handler.Callback, BaseActivity
 {
   SettingsController controller;
 
@@ -45,7 +48,9 @@ public class SettingsActivity extends PreferenceActivity implements BaseActivity
     setContentView(R.layout.settings);
 
     controller=new SettingsController();
-
+    controller.addOutboxHandler(new Handler(this));
+    controller.handleMessage(SettingsController.MESSAGE_VIEW_READY, null);
+    
     SwipeGestureListener sgl=new SwipeGestureListener(this);
     final GestureDetector gestureDetector=new GestureDetector(sgl);
 
@@ -95,5 +100,40 @@ public class SettingsActivity extends PreferenceActivity implements BaseActivity
         return super.onOptionsItemSelected(item);
     }
     return true;
+  }
+  
+  @Override
+  public boolean handleMessage(final Message msg)
+  {
+    String value=(String)msg.obj;
+    switch(msg.what)
+    {
+      case SettingsController.MESSAGE_UPDATE_HTTP_USER:
+        EditTextPreference user=(EditTextPreference)getPreferenceScreen()
+          .findPreference("http_user");
+        if(value.equals(""))
+        {
+          user.setSummary(R.string.settings_http_user_summary);
+        }
+        else
+        {
+          user.setSummary(value);
+        }
+        break;
+      case SettingsController.MESSAGE_UPDATE_HTTP_PASS:
+        EditTextPreference pass=(EditTextPreference)getPreferenceScreen()
+          .findPreference("http_pass");
+        if(value.equals(""))
+        {
+          pass.setSummary(R.string.settings_http_pass_summary);
+        }
+        else
+        {
+          pass.setSummary(value.replaceAll(".", "*"));
+        }
+        break;
+            
+    }
+    return false;
   }
 }

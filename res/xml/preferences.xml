@@ -16,12 +16,15 @@
 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+<PreferenceCategory android:title="Server">
+    
 <EditTextPreference
   android:name="server_url"
-  android:summary="Address of the Graphite server\nExample: http://my.graphite.server"
+  android:summary="Address of the Graphite server\nExample: http://graphite.server:8080"
   android:defaultValue=""
-  android:title="Server URL"
-  android:key="server_url" />
+  android:title="URL"
+  android:key="server_url"
+  android:inputType="textUri" />
 
 <EditTextPreference
   android:name="target_filter"
@@ -30,6 +33,29 @@
   android:title="Target filter"
   android:key="target_filter" />
 
+</PreferenceCategory>
+
+<PreferenceCategory android:title="HTTP Authentication">
+
+<EditTextPreference 
+  android:name="http_user"
+  android:summary="@string/settings_http_user_summary"
+  android:defaultValue=""
+  android:title="Username"
+  android:key="http_user" />
+
+<EditTextPreference 
+  android:name="http_pass"
+  android:summary="@string/settings_http_pass_summary"
+  android:defaultValue=""
+  android:title="Password"
+  android:key="http_pass"
+  android:inputType="textPassword" />
+
+</PreferenceCategory>
+
+<PreferenceCategory android:title="HTTPS">
+
 <CheckBoxPreference
   android:name="https_verify"
   android:summary="Trust all certificates when connecting over HTTPS"
@@ -37,5 +63,6 @@
   android:title="Skip verification"
   android:key="https_verify" />
 
-</PreferenceScreen>
+</PreferenceCategory>
 
+</PreferenceScreen>

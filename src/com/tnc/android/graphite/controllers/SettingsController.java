@@ -17,6 +17,8 @@
 package com.tnc.android.graphite.controllers;
 
 
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import javax.net.ssl.HostnameVerifier;
@@ -37,9 +39,12 @@ public class SettingsController extends Controller
 {
   SSLSocketFactory defaultSSLFactory;
   HostnameVerifier defaultVerifier;
-
   SharedPreferences prefs;
 
+  public static final int MESSAGE_UPDATE_HTTP_USER=1;
+  public static final int MESSAGE_UPDATE_HTTP_PASS=2;
+  public static final int MESSAGE_VIEW_READY=3;
+  
   public SettingsController()
   {
     defaultSSLFactory=HttpsURLConnection.getDefaultSSLSocketFactory();
@@ -47,12 +52,16 @@ public class SettingsController extends Controller
     prefs=PreferenceManager.getDefaultSharedPreferences(
       GraphiteApp.getContext());
     prefs.registerOnSharedPreferenceChangeListener(this);
-    setPrefs();
   }
 
-  @Override
   public boolean handleMessage(int what, Object data)
   {
+    switch(what)
+    {
+      case MESSAGE_VIEW_READY:
+        setPrefs();
+        break;
+    }
     return false;
   }
 
@@ -76,10 +85,36 @@ public class SettingsController extends Controller
       HttpsURLConnection.setDefaultSSLSocketFactory(defaultSSLFactory);
       HttpsURLConnection.setDefaultHostnameVerifier(defaultVerifier);
     }
+    
+    String httpUsername = prefs.getString("http_user", "");
+    String httpPassword = prefs.getString("http_pass", "");
+    
+    notifyOutboxHandlers(MESSAGE_UPDATE_HTTP_USER, 0, 0, httpUsername);
+    notifyOutboxHandlers(MESSAGE_UPDATE_HTTP_PASS, 0, 0, httpPassword);
+    
+    if(!httpUsername.equals("") || !httpPassword.equals(""))
+    {
+      setHttpAuthDetails(httpUsername, httpPassword);
+    }
   }
 
+  private void setHttpAuthDetails(String user, String pass)
+  {
+    final String username = user;
+    final String password = pass;
+    Authenticator.setDefault(new Authenticator()
+    {
+      protected PasswordAuthentication getPasswordAuthentication()
+      {
+        return new PasswordAuthentication(username,
+          password.toCharArray());
+      } 
+    });
+  }
+  
   //always dontVerify the host - dont check for certificate
-  final HostnameVerifier DO_NOT_VERIFY=new HostnameVerifier() {
+  final HostnameVerifier DO_NOT_VERIFY=new HostnameVerifier()
+  {
     public boolean verify(String hostname, SSLSession session)
     {
       return true;

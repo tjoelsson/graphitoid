@@ -144,6 +144,8 @@ public class GraphiteConnection
   {
     URL url=new URL(urlString);
     HttpURLConnection http=(HttpURLConnection)url.openConnection();
+    http.setConnectTimeout(30000);
+    http.setReadTimeout(30000);
     BufferedReader reader=new BufferedReader(
       new InputStreamReader(http.getInputStream()), 8192);
     return reader;
