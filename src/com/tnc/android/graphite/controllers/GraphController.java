@@ -28,6 +28,7 @@ import android.preference.PreferenceManager;
 import android.view.Display;
 import android.view.WindowManager;
 import com.tnc.android.graphite.GraphiteApp;
+import com.tnc.android.graphite.R;
 import com.tnc.android.graphite.models.DrawableGraph;
 import com.tnc.android.graphite.models.GraphiteQuery;
 import com.tnc.android.graphite.utils.GraphiteConnection;
@@ -47,23 +48,27 @@ public class GraphController extends Controller
   public static final int MESSAGE_RELOAD=5;
   public static final int MESSAGE_FAIL_GO_BACK=6;
   public static final int MESSAGE_CONFIG_UPDATE=7;
-
+  public static final int MESSAGE_START=8;
+  public static final int MESSAGE_STOP=9;
+  public static final int MESSAGE_AUTO_REFRESH_DIALOG=10;
+  public static final int MESSAGE_SET_AUTO_REFRESH=11;
+  
   private String serverUrl;
   private DrawableGraph model;
   private ArrayList<String> targetStrings;
   private Calendar intervalFrom=null;
   private Calendar intervalTo=null;
   private boolean graphDisplayed=false;
+  private int autoRefreshInterval=0;
+  private int[] autoRefreshValues;
 
   public GraphController(DrawableGraph model)
   {
-    workerThread=new HandlerThread("Graph Worker Thread");
-    workerThread.start();
-    workerHandler=new Handler(workerThread.getLooper());
-
     this.model=model;
     setPrefs();
     targetStrings=new ArrayList<String>();
+    autoRefreshValues=GraphiteApp.getContext().getResources()
+      .getIntArray(R.array.auto_refresh_values);
   }
 
   @Override
@@ -71,84 +76,6 @@ public class GraphController extends Controller
   {
     super.dispose();
     workerThread.getLooper().quit();
-  }
-
-  private void plotGraph()
-  {
-    if(!graphDisplayed)
-    {
-      notifyOutboxHandlers(MESSAGE_START_LOADING, 0, 0, null);
-    }
-    workerHandler.post(new Runnable() {
-      @Override
-      public void run()
-      {
-        GraphiteQuery query=new GraphiteQuery();
-        for(String str : targetStrings)
-        {
-          query.addTarget(str);
-        }
-        if(null!=intervalFrom&&null!=intervalTo)
-        {
-          query.setFromCalendar(intervalFrom);
-          query.setUntilCalendar(intervalTo);
-        }
-        WindowManager wm=(WindowManager)GraphiteApp.getContext().getSystemService(
-          Context.WINDOW_SERVICE);
-        Display display=wm.getDefaultDisplay();
-        
-        int width;
-        int height;
-//        if(android.os.Build.VERSION.SDK_INT >= 13)
-//        {
-//          Point size=new Point();
-//          display.getSize(size);
-//          width=size.x;
-//          height=size.y;
-//        }
-//        else
-//        {
-        width=display.getWidth();
-        height=display.getHeight();
-//        }
-        query.setWidth(width);
-        query.setHeight(height);
-        
-        String paramString=query.getParamString();
-        // Get from memory
-        DrawableGraph graph=GraphiteApp.getInstance().getGraphHolder().get(
-          (serverUrl+paramString).hashCode()
-        );
-        if(null==graph)
-        {
-          // Get from server
-          try
-          {
-            graph=GraphiteConnection.getGraph(
-              serverUrl,
-              paramString
-            );
-          }
-          catch(Exception e)
-          {
-            e.printStackTrace();
-            notifyOutboxHandlers(MESSAGE_STOP_LOADING, 0, 0, null);
-            notifyOutboxHandlers(MESSAGE_FAIL_GO_BACK, 0, 0, e);
-          }
-        }
-        
-        notifyOutboxHandlers(MESSAGE_STOP_LOADING, 0, 0, null);
-        
-        if(null!=graph)
-        {
-          model.consume(graph);
-          GraphiteApp.getInstance().getGraphHolder().put(
-            (serverUrl+paramString).hashCode(), graph);
-          notifyOutboxHandlers(MESSAGE_PLOT_GRAPH, 0, 0, null);
-          graphDisplayed=true;
-        }
-      }
-    });
   }
 
   public boolean handleMessage(int what, Object data)
@@ -166,19 +93,149 @@ public class GraphController extends Controller
         targetStrings=extras.getStringArrayList("targets");
         intervalFrom=(Calendar)extras.getSerializable("from");
         intervalTo=(Calendar)extras.getSerializable("to");
-        plotGraph();
         return true;
       case MESSAGE_CONFIG_UPDATE:
         plotGraph();
+        return true;
+      case MESSAGE_STOP:
+        workerHandler.removeCallbacksAndMessages(null);
+        workerThread.interrupt();
+        workerThread.quit();
+        return true;
+      case MESSAGE_START:
+        workerThread=new HandlerThread("Graph Worker Thread");
+        workerThread.start();
+        workerHandler=new Handler(workerThread.getLooper());
+        plotGraph();
+        return true;
+      case MESSAGE_AUTO_REFRESH_DIALOG:
+        for(int i = 0; i < autoRefreshValues.length; ++i)
+        {
+          if(autoRefreshValues[i] == autoRefreshInterval)
+          {
+            notifyOutboxHandlers(MESSAGE_AUTO_REFRESH_DIALOG, 0, 0, i);
+            return true;
+          }
+        }
+      case MESSAGE_SET_AUTO_REFRESH:
+        autoRefreshInterval=autoRefreshValues[(Integer)data];
+        if(0<autoRefreshInterval)
+        {
+          plotGraph(autoRefreshInterval);
+        }
         return true;
     }
     return false;
   }
 
+  private void plotGraph()
+  {
+    plotGraph(0);
+  }
+  
+  private void plotGraph(int delay)
+  {
+    if(!graphDisplayed)
+    {
+      notifyOutboxHandlers(MESSAGE_START_LOADING, 0, 0, null);
+    }
+    workerHandler.removeCallbacksAndMessages(null);
+    workerHandler.postDelayed(new PlotRunnable(), delay);
+  }
+  
   private void setPrefs()
   {
     SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(
       GraphiteApp.getContext());
     serverUrl=prefs.getString("server_url", "");
+  }
+
+  class PlotRunnable implements Runnable
+  {
+    @Override
+    public void run()
+    {
+      if(workerThread.isInterrupted())
+      {
+        return;
+      }
+      if(0<autoRefreshInterval)
+      {
+        workerHandler.postDelayed(new PlotRunnable(), autoRefreshInterval);
+      }
+      GraphiteQuery query=new GraphiteQuery();
+      for(String str : targetStrings)
+      {
+        query.addTarget(str);
+      }
+      if(null!=intervalFrom&&null!=intervalTo)
+      {
+        query.setFromCalendar(intervalFrom);
+        query.setUntilCalendar(intervalTo);
+      }
+      WindowManager wm=(WindowManager)GraphiteApp.getContext().getSystemService(
+        Context.WINDOW_SERVICE);
+      Display display=wm.getDefaultDisplay();
+      
+      int width;
+      int height;
+//      if(android.os.Build.VERSION.SDK_INT >= 13)
+//      {
+//        Point size=new Point();
+//        display.getSize(size);
+//        width=size.x;
+//        height=size.y;
+//      }
+//      else
+//      {
+      width=display.getWidth();
+      height=display.getHeight();
+//      }
+      query.setWidth(width);
+      query.setHeight(height);
+      
+      String paramString=query.getParamString();
+      
+      // Get from memory
+      DrawableGraph graph=GraphiteApp.getInstance().getGraphHolder().get(
+        (serverUrl+paramString).hashCode()
+      );
+      if(null!=graph)
+      {
+        long cutoff = 60000000000L; // One minute
+        if(0<autoRefreshInterval||System.nanoTime()-graph.getTimestamp()>=cutoff)
+        {
+          graph=null;
+        }
+      }
+      if(null==graph)
+      {
+        // Get from server
+        try
+        {
+          graph=GraphiteConnection.getGraph(
+            serverUrl,
+            paramString
+          );
+        }
+        catch(Exception e)
+        {
+          e.printStackTrace();
+          notifyOutboxHandlers(MESSAGE_STOP_LOADING, 0, 0, null);
+          notifyOutboxHandlers(MESSAGE_FAIL_GO_BACK, 0, 0, e);
+        }
+      }
+      
+      notifyOutboxHandlers(MESSAGE_STOP_LOADING, 0, 0, null);
+      
+      if(null!=graph)
+      {
+        model.consume(graph);
+        GraphiteApp.getInstance().getGraphHolder().put(
+          (serverUrl+paramString).hashCode(), graph);
+        notifyOutboxHandlers(MESSAGE_PLOT_GRAPH, 0, 0, null);
+        graphDisplayed=true;
+      }
+    }
   }
 }

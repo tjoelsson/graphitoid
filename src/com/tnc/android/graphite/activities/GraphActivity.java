@@ -18,11 +18,15 @@ package com.tnc.android.graphite.activities;
 
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.FragmentActivity;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -39,7 +43,7 @@ import com.tnc.android.graphite.utils.ErrorMessage;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
 
 
-public class GraphActivity extends Activity implements Handler.Callback, BaseActivity
+public class GraphActivity extends FragmentActivity implements Handler.Callback, SwipeActivity
 {
   final static int DATE_TIME=104;
 
@@ -70,6 +74,20 @@ public class GraphActivity extends Activity implements Handler.Callback, BaseAct
   }
 
   @Override
+  public void onStop()
+  {
+    super.onStop();
+    controller.handleMessage(GraphController.MESSAGE_STOP);
+  }
+  
+  @Override
+  public void onStart()
+  {
+    super.onStart();
+    controller.handleMessage(GraphController.MESSAGE_START);
+  }
+  
+  @Override
   public boolean onCreateOptionsMenu(Menu menu)
   {
     MenuInflater inflater=getMenuInflater();
@@ -85,8 +103,8 @@ public class GraphActivity extends Activity implements Handler.Callback, BaseAct
       case R.id.graph_menu_reload:
         controller.handleMessage(GraphController.MESSAGE_RELOAD);
         break;
-      case R.id.graph_menu_targets:
-        this.finish();
+      case R.id.graph_menu_auto_refresh:
+        controller.handleMessage(GraphController.MESSAGE_AUTO_REFRESH_DIALOG);
         break;
       default:
         return super.onOptionsItemSelected(item);
@@ -133,6 +151,20 @@ public class GraphActivity extends Activity implements Handler.Callback, BaseAct
       case GraphController.MESSAGE_FAIL_GO_BACK:
         ErrorMessage.displayRaw(me, msg.obj.toString());
         this.finish();
+        return true;
+      case GraphController.MESSAGE_AUTO_REFRESH_DIALOG:
+        AlertDialog.Builder builder = new AlertDialog.Builder(me);
+        builder.setTitle(getResources().getString(R.string.auto_refresh_dialog_title))
+          .setSingleChoiceItems(R.array.auto_refresh_display,
+            (Integer)msg.obj, new DialogInterface.OnClickListener() {
+              public void onClick(DialogInterface dialog, int which)
+              {
+                controller.handleMessage(GraphController.MESSAGE_SET_AUTO_REFRESH, which);
+                dialog.dismiss();
+              }
+        });
+        Dialog autoRefreshDialog = builder.create();
+        autoRefreshDialog.show();
         return true;
     }
     return false;

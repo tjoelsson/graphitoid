@@ -17,7 +17,7 @@
 package com.tnc.android.graphite.activities;
 
 
-public interface BaseActivity
+public interface SwipeActivity
 {
   public abstract void onLeftSwipe();
   public abstract void onRightSwipe();

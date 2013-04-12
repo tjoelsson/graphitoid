@@ -47,7 +47,7 @@ import com.tnc.android.graphite.utils.ErrorMessage;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
 
 
-public class TargetsActivity extends FragmentActivity implements Handler.Callback, BaseActivity
+public class TargetsActivity extends FragmentActivity implements Handler.Callback, SwipeActivity
 {
   final private int INTERVAL_DIALOG_FROM=101;
   final private int INTERVAL_DIALOG_TO=102;

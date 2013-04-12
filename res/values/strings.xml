@@ -24,11 +24,12 @@
   <string name="targets_menu_clear">Clear Selection</string>
   <string name="targets_menu_plot">Plot Graph</string>
   <string name="graph_menu_reload">Reload</string>
-  <string name="graph_menu_targets">Edit Targets</string>
+  <string name="graph_menu_auto_refresh">Auto-Refresh</string>
   <string name="set_preferences">Settings</string>
   <string name="connection_error">Connection failed. Try changing the server URL.</string>
   <string name="update_settings_error">Something went wrong. Check settings.</string>
   <string name="no_settings_error">Start by setting your preferences.</string>
   <string name="interval_from_header">Start</string>
   <string name="interval_to_header">End</string>
+  <string name="auto_refresh_dialog_title">Set Auto-Refresh</string>
 </resources>

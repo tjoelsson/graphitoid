@@ -78,7 +78,6 @@ public class TargetsController extends Controller
     prefs.unregisterOnSharedPreferenceChangeListener(this);
   }
 
-
   @Override
   public boolean handleMessage(int what, Object data)
   {

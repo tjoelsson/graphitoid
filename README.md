@@ -1,6 +1,6 @@
 # Graphitoid
 
-Graphitoid is an Android application for browsing and displaying Graphite graphs.
+An Android application for browsing and displaying Graphite graphs.
 
 [Graphite](http://graphite.wikidot.com) is a highly scalable real-time graphing system. 
 
@@ -10,8 +10,7 @@ Graphitoid is an Android application for browsing and displaying Graphite graphs
 
 ## Acknowledgements
 
-This project depends the following libraries:
+This project depends on the following libraries:
 
-* [AChartEngine](http://www.achartengine.org)
 * [tree-view-list-android](http://code.google.com/p/tree-view-list-android/)
 * [android-dateslider](http://code.google.com/p/android-dateslider/)

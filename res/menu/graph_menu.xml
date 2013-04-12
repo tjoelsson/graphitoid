@@ -17,7 +17,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
   <item android:id="@+id/graph_menu_reload"
     android:title="@string/graph_menu_reload" />
-  <item android:id="@+id/graph_menu_targets"
-    android:title="@string/graph_menu_targets" />
+  <item android:id="@+id/graph_menu_auto_refresh" 
+    android:title="@string/graph_menu_auto_refresh" />
 </menu>
-

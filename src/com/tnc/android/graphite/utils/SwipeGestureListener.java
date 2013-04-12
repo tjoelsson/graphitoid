@@ -20,7 +20,7 @@ package com.tnc.android.graphite.utils;
 import android.util.Log;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
-import com.tnc.android.graphite.activities.BaseActivity;
+import com.tnc.android.graphite.activities.SwipeActivity;
 
 
 public class SwipeGestureListener extends SimpleOnGestureListener
@@ -29,9 +29,9 @@ public class SwipeGestureListener extends SimpleOnGestureListener
   private static final int SWIPE_MAX_OFF_PATH=200;
   private static final int SWIPE_THRESHOLD_VELOCITY=200;
 
-  private BaseActivity activity;
+  private SwipeActivity activity;
 
-  public SwipeGestureListener(BaseActivity a)
+  public SwipeGestureListener(SwipeActivity a)
   {
     super();
     activity=a;

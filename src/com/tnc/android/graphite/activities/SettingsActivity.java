@@ -35,7 +35,7 @@ import com.tnc.android.graphite.controllers.SettingsController;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
 
 
-public class SettingsActivity extends PreferenceActivity implements Handler.Callback, BaseActivity
+public class SettingsActivity extends PreferenceActivity implements Handler.Callback, SwipeActivity
 {
   SettingsController controller;
 

@@ -23,7 +23,13 @@ import android.graphics.drawable.Drawable;
 public class DrawableGraph extends SimpleObservable<DrawableGraph>
 {
   private Drawable image;
+  private long timestamp;
 
+  public DrawableGraph()
+  {
+    this.timestamp=System.nanoTime();
+  }
+  
   public Drawable getImage()
   {
     return this.image;
@@ -34,6 +40,11 @@ public class DrawableGraph extends SimpleObservable<DrawableGraph>
     this.image=image;
   }
  
+  public long getTimestamp()
+  {
+    return this.timestamp;
+  }
+  
   @Override
   synchronized public DrawableGraph clone()
   {
