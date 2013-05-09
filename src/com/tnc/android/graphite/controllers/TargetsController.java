@@ -125,14 +125,14 @@ public class TargetsController extends Controller
 
   private void getTargets(final Target baseTarget)
   {
-    workerHandler.post(new Runnable() {
-      @Override
-      public void run()
-      {
-        if(null!=baseTarget)
+    if(null!=baseTarget)
+    {
+      notifyOutboxHandlers(MESSAGE_START_LOADING, 0, 0, null);
+      workerHandler.post(new Runnable() {
+        @Override
+        public void run()
         {
           // Load children of baseTarget
-          notifyOutboxHandlers(MESSAGE_START_LOADING, 0, 0, null);
           ArrayList<Target> targets;
           try
           {
@@ -158,16 +158,19 @@ public class TargetsController extends Controller
             {
               model.add(idx+i, targets.get(i));
             }
+            persistModel();
           }
           notifyOutboxHandlers(MESSAGE_MODEL_UPDATED, targets.size(), 0,
             baseTarget);
           notifyOutboxHandlers(MESSAGE_STOP_LOADING, 0, 0, null);
-          synchronized(model)
-          {
-            persistModel();
-          }
-          return;
         }
+      });
+      return;
+    }
+    workerHandler.post(new Runnable() {
+      @Override
+      public void run()
+      {
         TargetDao dao=new TargetDao();
         ArrayList<Target> targets=dao.getAll();
         String hash=String.valueOf((serverUrl+targetFilter).hashCode());
@@ -183,8 +186,8 @@ public class TargetsController extends Controller
             {
               model.add(target);
             }
-            notifyOutboxHandlers(MESSAGE_MODEL_NEW, 0, 0, null);
           }
+          notifyOutboxHandlers(MESSAGE_MODEL_NEW, 0, 0, null);
         }
         else
         {
