@@ -209,8 +209,10 @@ public class GraphController extends Controller
       );
       if(null!=graph)
       {
-        long cutoff = 60000000000L; // One minute
-        if(0<autoRefreshInterval||System.nanoTime()-graph.getTimestamp()>=cutoff)
+        long cutoff = 60000000000L; // One minute in nanoseconds
+        long autoCutoff = 60000L; // One minute in milliseconds
+        if(System.nanoTime()-graph.getTimestamp()>=cutoff
+          ||(0<autoRefreshInterval&&autoRefreshInterval<autoCutoff))
         {
           graph=null;
         }
