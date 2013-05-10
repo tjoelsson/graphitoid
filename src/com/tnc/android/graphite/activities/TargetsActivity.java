@@ -45,15 +45,22 @@ import com.tnc.android.graphite.lists.TargetsTreeAdapter;
 import com.tnc.android.graphite.models.Target;
 import com.tnc.android.graphite.utils.ErrorMessage;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
+import com.tnc.android.graphite.utils.RecentRangeDialog;
 
 
 public class TargetsActivity extends FragmentActivity implements Handler.Callback, SwipeActivity
 {
   final private int INTERVAL_DIALOG_FROM=101;
   final private int INTERVAL_DIALOG_TO=102;
+  final private int RANGE_TYPE_NONE=0;
+  final private int RANGE_TYPE_RECENT=1;
+  final private int RANGE_TYPE_DATES=2;
 
   private Calendar intervalFrom=null;
   private Calendar intervalTo=null;
+  private Integer rangeNumber=null;
+  private String rangeUnit=null;
+  private int currentRangeType=RANGE_TYPE_NONE;
   private ArrayList<Target> targets;
   private TargetsController controller;
   private ProgressDialog dialog;
@@ -123,8 +130,11 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
   {
     switch(item.getItemId())
     {
-      case R.id.targets_menu_reload:
-        controller.handleMessage(TargetsController.MESSAGE_RELOAD_TARGETS);
+      case R.id.targets_menu_recent_range:
+        RecentRangeDialog tDialog=new RecentRangeDialog(this);
+        tDialog.setNumber(rangeNumber);
+        tDialog.setUnit(rangeUnit);
+        tDialog.show();
         break;
       case R.id.targets_menu_datetime:
         Calendar input;
@@ -139,6 +149,9 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
         IntervalDialogFragment dialog=new IntervalDialogFragment(this, input,
           INTERVAL_DIALOG_FROM, getString(R.string.interval_from_header));
         dialog.show(getSupportFragmentManager(), "from_dialog");
+        break;
+      case R.id.targets_menu_reload:
+        controller.handleMessage(TargetsController.MESSAGE_RELOAD_TARGETS);
         break;
       case R.id.targets_menu_clear:
         selected.clear();
@@ -302,10 +315,14 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
       targetStrings.add(s.getName());
     }
     remBundle.putStringArrayList("targets", targetStrings);
-    if(null!=intervalFrom&&null!=intervalTo)
-    {
-      remBundle.putSerializable("from", intervalFrom);
-      remBundle.putSerializable("to", intervalTo);
+    switch (currentRangeType){
+      case RANGE_TYPE_RECENT:
+        remBundle.putString("range", rangeNumber+rangeUnit);
+        break;
+      case RANGE_TYPE_DATES:
+        remBundle.putSerializable("from", intervalFrom);
+        remBundle.putSerializable("to", intervalTo);
+        break;
     }
     intent.putExtras(remBundle);
     startActivity(intent);
@@ -314,6 +331,13 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
   public void onRightSwipe()
   {
     this.finish();
+  }
+
+  public void timeRangeDialogCallback(int number, String unit)
+  {
+    rangeNumber=number;
+    rangeUnit=unit;
+    currentRangeType=RANGE_TYPE_RECENT;
   }
 
   public void intervalDialogCallback(Calendar cal, int type)
@@ -338,6 +362,7 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
         break;
       case INTERVAL_DIALOG_TO:
         intervalTo=cal;
+        currentRangeType=RANGE_TYPE_DATES;
         break;
     }
   }

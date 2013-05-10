@@ -26,6 +26,7 @@ import java.util.Iterator;
 public class GraphiteQuery
 {
   private ArrayList<String> targets;
+  private String range="";
   private long from=-1;
   private long until=-1;
   private int width=0;
@@ -79,6 +80,11 @@ public class GraphiteQuery
       paramString.append("&height="+this.height);
     }
 
+    if(!this.range.equals(""))
+    {
+      paramString.append("&from=-"+this.range);
+    }
+
     if(0<=this.from)
     {
       paramString.append("&from="+this.from);
@@ -109,6 +115,11 @@ public class GraphiteQuery
   public ArrayList<String> getTargets()
   {
     return targets;
+  }
+
+  public String getRange()
+  {
+    return range;
   }
 
   public long getFrom()
@@ -220,6 +231,11 @@ public class GraphiteQuery
   public void setTargets(ArrayList<String> targets)
   {
     this.targets=targets;
+  }
+
+  public void setRange(String range)
+  {
+    this.range=range;
   }
 
   public void setFrom(long from)

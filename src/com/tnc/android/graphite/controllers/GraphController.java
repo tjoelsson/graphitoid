@@ -58,6 +58,7 @@ public class GraphController extends Controller
   private ArrayList<String> targetStrings;
   private Calendar intervalFrom=null;
   private Calendar intervalTo=null;
+  private String range=null;
   private boolean graphDisplayed=false;
   private int autoRefreshInterval=0;
   private int[] autoRefreshValues;
@@ -93,8 +94,10 @@ public class GraphController extends Controller
         targetStrings=extras.getStringArrayList("targets");
         intervalFrom=(Calendar)extras.getSerializable("from");
         intervalTo=(Calendar)extras.getSerializable("to");
+        range=extras.getString("range");
         return true;
       case MESSAGE_CONFIG_UPDATE:
+        // TODO: use stored graph even if auto-refresh is enabled
         plotGraph();
         return true;
       case MESSAGE_STOP:
@@ -167,6 +170,10 @@ public class GraphController extends Controller
       for(String str : targetStrings)
       {
         query.addTarget(str);
+      }
+      if(null!=range)
+      {
+        query.setRange(range);
       }
       if(null!=intervalFrom&&null!=intervalTo)
       {

@@ -19,8 +19,9 @@
   <string name="settings_menu_targets">Select Targets</string>
   <string name="settings_http_user_summary">HTTP Username</string>
   <string name="settings_http_pass_summary">HTTP Password</string>
+  <string name="targets_menu_recent_range">Select Recent Data</string>
+  <string name="targets_menu_datetime">Select Date Range</string>
   <string name="targets_menu_reload">Reload Targets</string>
-  <string name="targets_menu_datetime">Set Interval</string>
   <string name="targets_menu_clear">Clear Selection</string>
   <string name="targets_menu_plot">Plot Graph</string>
   <string name="graph_menu_reload">Reload</string>
@@ -29,7 +30,8 @@
   <string name="connection_error">Connection failed. Try changing the server URL.</string>
   <string name="update_settings_error">Something went wrong. Check settings.</string>
   <string name="no_settings_error">Start by setting your preferences.</string>
-  <string name="interval_from_header">Start</string>
-  <string name="interval_to_header">End</string>
+  <string name="interval_from_header">Select Date Range Start</string>
+  <string name="interval_to_header">Select Date Range End</string>
   <string name="auto_refresh_dialog_title">Set Auto-Refresh</string>
+  <string name="recent_range_dialog_title">Select a Recent Time Range</string>
 </resources>
