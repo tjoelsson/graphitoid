@@ -89,8 +89,8 @@ public class GraphiteConnection
   {
     URL url=new URL(serverUrl+GRAPH_PARAM_STRING+ps);
     HttpURLConnection http=(HttpURLConnection)url.openConnection();
-    http.setConnectTimeout(30000);
-    http.setReadTimeout(30000);
+    http.setConnectTimeout(45000);
+    http.setReadTimeout(45000);
     Drawable image=Drawable.createFromStream(http.getInputStream(), null);
     DrawableGraph dg=new DrawableGraph();
     dg.setImage(image);
@@ -102,8 +102,8 @@ public class GraphiteConnection
   {
     URL url=new URL(urlString);
     HttpURLConnection http=(HttpURLConnection)url.openConnection();
-    http.setConnectTimeout(30000);
-    http.setReadTimeout(30000);
+    http.setConnectTimeout(45000);
+    http.setReadTimeout(45000);
     BufferedReader reader=new BufferedReader(
       new InputStreamReader(http.getInputStream()), 8192);
     return reader;
