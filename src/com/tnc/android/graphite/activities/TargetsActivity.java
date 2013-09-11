@@ -19,13 +19,14 @@ package com.tnc.android.graphite.activities;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import pl.polidea.treeview.InMemoryTreeStateManager;
 import pl.polidea.treeview.TreeBuilder;
 import pl.polidea.treeview.TreeViewList;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,37 +39,29 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import com.googlecode.android.widgets.DateSlider.DateSlider;
 import com.tnc.android.graphite.R;
 import com.tnc.android.graphite.controllers.TargetsController;
 import com.tnc.android.graphite.fragments.IntervalDialogFragment;
 import com.tnc.android.graphite.lists.TargetsTreeAdapter;
+import com.tnc.android.graphite.models.RecentRange;
 import com.tnc.android.graphite.models.Target;
-import com.tnc.android.graphite.utils.ErrorMessage;
-import com.tnc.android.graphite.utils.SwipeGestureListener;
+import com.tnc.android.graphite.utils.UserNotification;
 import com.tnc.android.graphite.utils.RecentRangeDialog;
+import com.tnc.android.graphite.utils.SwipeGestureListener;
 
 
 public class TargetsActivity extends FragmentActivity implements Handler.Callback, SwipeActivity
 {
-  final private int INTERVAL_DIALOG_FROM=101;
-  final private int INTERVAL_DIALOG_TO=102;
-  final private int RANGE_TYPE_NONE=0;
-  final private int RANGE_TYPE_RECENT=1;
-  final private int RANGE_TYPE_DATES=2;
-
-  private Calendar intervalFrom=null;
-  private Calendar intervalTo=null;
-  private Integer rangeNumber=null;
-  private String rangeUnit=null;
-  private int currentRangeType=RANGE_TYPE_NONE;
+  final Activity me=this;
   private ArrayList<Target> targets;
   private TargetsController controller;
   private ProgressDialog dialog;
   private InMemoryTreeStateManager<Target> manager=null;
   private TreeViewList treeView;
   private TargetsTreeAdapter adapter;
-  private final Set<Target> selected=new HashSet<Target>();
-
+  private List<Target> selected=new ArrayList<Target>();
+  
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
@@ -131,24 +124,13 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
     switch(item.getItemId())
     {
       case R.id.targets_menu_recent_range:
-        RecentRangeDialog tDialog=new RecentRangeDialog(this);
-        tDialog.setNumber(rangeNumber);
-        tDialog.setUnit(rangeUnit);
-        tDialog.show();
+        controller.handleMessage(TargetsController.MESSAGE_RECENT_RANGE);
         break;
       case R.id.targets_menu_datetime:
-        Calendar input;
-        if(null!=intervalFrom)
-        {
-          input=(Calendar)intervalFrom.clone();
-        }
-        else
-        {
-          input=Calendar.getInstance();
-        }
-        IntervalDialogFragment dialog=new IntervalDialogFragment(this, input,
-          INTERVAL_DIALOG_FROM, getString(R.string.interval_from_header));
-        dialog.show(getSupportFragmentManager(), "from_dialog");
+        controller.handleMessage(TargetsController.MESSAGE_DATE_TIME);
+        break;
+      case R.id.targets_menu_saved:
+        controller.handleMessage(TargetsController.MESSAGE_SAVED_GRAPH);
         break;
       case R.id.targets_menu_reload:
         controller.handleMessage(TargetsController.MESSAGE_RELOAD_TARGETS);
@@ -159,7 +141,7 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
         adapter.notifyDataSetChanged();
         break;
       case R.id.targets_menu_plot:
-        startPlotActivity();
+        controller.handleMessage(TargetsController.MESSAGE_PLOT_GRAPH, selected);
         break;
       default:
         return super.onOptionsItemSelected(item);
@@ -180,61 +162,21 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
   @Override
   public boolean handleMessage(final Message msg)
   {
-    final Activity me=this;
     switch(msg.what)
     {
       case TargetsController.MESSAGE_MODEL_NEW:
         if(0==targets.size())
         {
           // No targets in model, go back to settings
-          ErrorMessage.display(me, ErrorMessage.UPDATE_SETTINGS);
+          UserNotification.display(me, UserNotification.UPDATE_SETTINGS);
           this.finish();
           return true;
         }
-        runOnUiThread(new Runnable() {
-          @Override
-          public void run()
-          {
-            manager.clear();
-            manager.setVisibleByDefault(false);
-            TreeBuilder<Target> builder=new TreeBuilder<Target>(manager);
-
-            int base=calcLevel(targets.get(0));
-            for(int i=0; i<targets.size(); ++i)
-            {
-              Target target=targets.get(i);
-              int level=calcLevel(target);
-
-              if(target.isExpandable()&&(i+1==targets.size()||
-                calcLevel(targets.get(i+1))<=level))
-              {
-                // The children are not yet loaded
-                target.setLoaded(false);
-                builder.sequentiallyAddNextNode(target, level-base);
-                Target placeholder=target.clone();
-                placeholder.setPlaceholder(true);
-                builder.sequentiallyAddNextNode(placeholder, level-base+1);
-              }
-              else
-              {
-                builder.sequentiallyAddNextNode(target, level-base);
-              }
-            }
-            adapter=new TargetsTreeAdapter(
-              me,
-              selected,
-              manager,
-              1 // Is 1 always ok?
-            );
-
-            treeView.setAdapter(adapter);
-            treeView.setCollapsible(true);
-            adapter.notifyDataSetChanged();
-          }
-        });
+        renderTargetTree();
         return true;
       case TargetsController.MESSAGE_MODEL_UPDATED:
-        runOnUiThread(new Runnable() {
+        runOnUiThread(new Runnable()
+        {
           @Override
           public void run()
           {
@@ -247,7 +189,7 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
               if(idx+i>=targets.size())
               {
                 // Out of bounds, must have failed to load new targets
-                ErrorMessage.display(me, ErrorMessage.UPDATE_SETTINGS);
+                UserNotification.display(me, UserNotification.UPDATE_SETTINGS);
                 return;
               }
               Target newTarget=targets.get(idx+i);
@@ -260,6 +202,7 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
                 newTarget.setLoaded(false);
                 builder.addRelation(base, newTarget);
                 Target placeholder=newTarget.clone();
+                placeholder.setName(placeholder.getName()+"-placeholder");
                 placeholder.setPlaceholder(true);
                 builder.addRelation(newTarget, placeholder);
               }
@@ -290,81 +233,81 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
         });
         return true;
       case TargetsController.MESSAGE_FAIL_GO_BACK:
-        ErrorMessage.displayRaw(me, msg.obj.toString());
+        UserNotification.displayRaw(me, msg.obj.toString());
         this.finish();
         return true;
       case TargetsController.MESSAGE_FAIL_STAY:
-        ErrorMessage.displayRaw(me, msg.obj.toString());
+        UserNotification.displayRaw(me, msg.obj.toString());
+        return true;
+      case TargetsController.MESSAGE_SAVED_GRAPH:
+        final CharSequence[] graphList=(CharSequence[])msg.obj;
+        AlertDialog.Builder builder=new AlertDialog.Builder(me)
+          .setTitle(getResources().getString(R.string.saved_dialog_title))
+          .setSingleChoiceItems(graphList, -1, new DialogInterface.OnClickListener()
+          {
+            public void onClick(DialogInterface dialog, int which)
+            {
+              controller.handleMessage(TargetsController.MESSAGE_SELECT_SAVED, which);
+              dialog.dismiss();
+            }
+          });
+        AlertDialog autoRefreshDialog=builder.create();
+        autoRefreshDialog.show();
+        return true;
+      case TargetsController.MESSAGE_DISPLAY_SAVED:
+        selected.clear();
+        selected.addAll((List<Target>)msg.obj);
+        manager.refresh();
+        adapter.notifyDataSetChanged();
+        return true;
+      case TargetsController.MESSAGE_DATE_TIME_FROM:
+        IntervalDialogFragment fromDialog=new IntervalDialogFragment(this, (Calendar)msg.obj,
+          getString(R.string.interval_from_header), new DateSlider.OnDateSetListener() {
+            public void onDateSet(DateSlider view, Calendar selectedDate)
+            {
+              controller.handleMessage(TargetsController.MESSAGE_DATE_TIME_FROM, selectedDate);
+            }
+          });
+        fromDialog.show(getSupportFragmentManager(), "from_dialog");
+        return true;
+      case TargetsController.MESSAGE_DATE_TIME_TO:
+        IntervalDialogFragment toDialog=new IntervalDialogFragment(this, (Calendar)msg.obj,
+          getString(R.string.interval_to_header), new DateSlider.OnDateSetListener() {
+            public void onDateSet(DateSlider view, Calendar selectedDate)
+            {
+              controller.handleMessage(TargetsController.MESSAGE_DATE_TIME_TO, selectedDate);
+            }
+          });
+        toDialog.show(getSupportFragmentManager(), "to_dialog");
+        return true;
+      case TargetsController.MESSAGE_RECENT_RANGE:
+        RecentRangeDialog rangeDialog=new RecentRangeDialog(this,
+          (RecentRange)msg.obj, new RecentRangeDialog.OnRangeSetListener()
+        {
+          public void onRangeSet(RecentRange range)
+          {
+            controller.handleMessage(TargetsController.MESSAGE_SET_RECENT_RANGE, range);
+          }
+        });
+        rangeDialog.show();
+        return true;
+      case TargetsController.MESSAGE_PLOT_GRAPH:
+        Intent intent=new Intent(this, GraphActivity.class);
+        intent.putExtras((Bundle)msg.obj);
+        startActivity(intent);
         return true;
     }
     return false;
   }
-
+  
   public void onLeftSwipe()
   {
-    startPlotActivity();
-  }
-
-  private void startPlotActivity()
-  {
-    Intent intent=new Intent(this, GraphActivity.class);
-    Bundle remBundle=new Bundle();
-    ArrayList<String> targetStrings=new ArrayList<String>();
-    for(Target s : selected)
-    {
-      targetStrings.add(s.getName());
-    }
-    remBundle.putStringArrayList("targets", targetStrings);
-    switch (currentRangeType){
-      case RANGE_TYPE_RECENT:
-        remBundle.putString("range", rangeNumber+rangeUnit);
-        break;
-      case RANGE_TYPE_DATES:
-        remBundle.putSerializable("from", intervalFrom);
-        remBundle.putSerializable("to", intervalTo);
-        break;
-    }
-    intent.putExtras(remBundle);
-    startActivity(intent);
+    controller.handleMessage(TargetsController.MESSAGE_PLOT_GRAPH, selected);
   }
 
   public void onRightSwipe()
   {
     this.finish();
-  }
-
-  public void timeRangeDialogCallback(int number, String unit)
-  {
-    rangeNumber=number;
-    rangeUnit=unit;
-    currentRangeType=RANGE_TYPE_RECENT;
-  }
-
-  public void intervalDialogCallback(Calendar cal, int type)
-  {
-    switch(type)
-    {
-      case INTERVAL_DIALOG_FROM:
-        intervalFrom=cal;
-        Calendar input;
-        if(null!=intervalTo)
-        {
-          input=(Calendar)intervalTo.clone();
-        }
-        else
-        {
-          input=Calendar.getInstance();
-        }
-
-        IntervalDialogFragment dialog=new IntervalDialogFragment(this, input,
-          INTERVAL_DIALOG_TO, getString(R.string.interval_to_header));
-        dialog.show(getSupportFragmentManager(), "to_dialog");
-        break;
-      case INTERVAL_DIALOG_TO:
-        intervalTo=cal;
-        currentRangeType=RANGE_TYPE_DATES;
-        break;
-    }
   }
 
   private int calcLevel(Target target)
@@ -376,5 +319,51 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
         lvl++;
     }
     return lvl;
+  }
+  
+  private void renderTargetTree()
+  {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run()
+      {
+        manager.clear();
+        manager.setVisibleByDefault(false);
+        TreeBuilder<Target> builder=new TreeBuilder<Target>(manager);
+
+        int base=calcLevel(targets.get(0));
+        for(int i=0; i<targets.size(); ++i)
+        {
+          Target target=targets.get(i);
+          int level=calcLevel(target);
+
+          if(target.isExpandable()&&(i+1==targets.size()||
+            calcLevel(targets.get(i+1))<=level))
+          {
+            // The children are not yet loaded
+            target.setLoaded(false);
+            builder.sequentiallyAddNextNode(target, level-base);
+            Target placeholder=target.clone();
+            placeholder.setName(placeholder.getName()+"-placeholder");
+            placeholder.setPlaceholder(true);
+            builder.sequentiallyAddNextNode(placeholder, level-base+1);
+          }
+          else
+          {
+            builder.sequentiallyAddNextNode(target, level-base);
+          }
+        }
+        adapter=new TargetsTreeAdapter(
+          me,
+          selected,
+          manager,
+          1 // Is 1 always ok?
+        );
+
+        treeView.setAdapter(adapter);
+        treeView.setCollapsible(true);
+        adapter.notifyDataSetChanged();
+      }
+    });
   }
 }

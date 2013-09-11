@@ -17,7 +17,7 @@
 package com.tnc.android.graphite.lists;
 
 
-import java.util.Set;
+import java.util.List;
 import pl.polidea.treeview.AbstractTreeViewAdapter;
 import pl.polidea.treeview.TreeNodeInfo;
 import pl.polidea.treeview.TreeStateManager;
@@ -36,8 +36,7 @@ import com.tnc.android.graphite.models.Target;
 
 public class TargetsTreeAdapter extends AbstractTreeViewAdapter<Target>
 {
-
-  private final Set<Target> selected;
+  private final List<Target> selected;
 
   private final OnCheckedChangeListener onCheckedChange=
     new OnCheckedChangeListener()
@@ -55,7 +54,10 @@ public class TargetsTreeAdapter extends AbstractTreeViewAdapter<Target>
   {
     if(isChecked)
     {
-      selected.add(id);
+      if(!selected.contains(id))
+      {
+        selected.add(id);
+      }
     }
     else
     {
@@ -64,7 +66,7 @@ public class TargetsTreeAdapter extends AbstractTreeViewAdapter<Target>
   }
 
   public TargetsTreeAdapter(final Activity activity,
-    final Set<Target> selected,
+    final List<Target> selected,
     final TreeStateManager<Target> treeStateManager,
     final int numberOfLevels)
   {
@@ -101,22 +103,23 @@ public class TargetsTreeAdapter extends AbstractTreeViewAdapter<Target>
     descriptionView.setText(getDescription(treeNodeInfo.getId()));
     final CheckBox box=(CheckBox)viewLayout
       .findViewById(R.id.list_checkbox);
-    box.setTag(treeNodeInfo.getId());
+    Target target=treeNodeInfo.getId();
     viewLayout.setVisibility(View.VISIBLE);
-    if(treeNodeInfo.isWithChildren())
-    {
-      box.setVisibility(View.GONE);
-    }
-    else if(treeNodeInfo.getId().isPlaceholder())
+    if(target.isPlaceholder())
     {
       viewLayout.setVisibility(View.GONE);
     }
+    else if(target.isExpandable())
+    {
+      box.setVisibility(View.GONE);
+    }
     else
     {
+      box.setTag(target); // has to be set before calling setChecked
       box.setVisibility(View.VISIBLE);
-      box.setChecked(selected.contains(treeNodeInfo.getId()));
+      box.setChecked(selected.contains(target));
+      box.setOnCheckedChangeListener(onCheckedChange);
     }
-    box.setOnCheckedChangeListener(onCheckedChange);
     return viewLayout;
   }
 

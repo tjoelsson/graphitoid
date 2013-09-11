@@ -23,7 +23,7 @@ import com.tnc.android.graphite.GraphiteApp;
 import com.tnc.android.graphite.R;
 
 
-public class ErrorMessage
+public class UserNotification
 {
   public final static int UPDATE_SETTINGS=101;
   public final static int CONNECTION=102;
@@ -47,15 +47,13 @@ public class ErrorMessage
   public static void displayRaw(Activity act, final String msg)
   {
     final GraphiteApp app=GraphiteApp.getInstance();
-    act.runOnUiThread(new Runnable() {
+    act.runOnUiThread(new Runnable()
+    {
       @Override
       public void run()
       {
-        Toast.makeText(
-          app.getBaseContext(),
-          msg,
-          Toast.LENGTH_LONG
-          ).show();
+        Toast.makeText(app.getBaseContext(), msg,
+          Toast.LENGTH_LONG).show();
       }
     });
   }

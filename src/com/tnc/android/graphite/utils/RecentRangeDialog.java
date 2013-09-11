@@ -29,7 +29,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import com.tnc.android.graphite.R;
-import com.tnc.android.graphite.activities.TargetsActivity;
+import com.tnc.android.graphite.models.RecentRange;
 
 
 public class RecentRangeDialog extends Dialog
@@ -38,15 +38,22 @@ public class RecentRangeDialog extends Dialog
   private Activity activity;
   private EditText numberField;
   private Spinner unitSpinner;
-  private Integer number;
-  private String unit;
+  private RecentRange range;
+  private OnRangeSetListener rangeListener;
     
-  public RecentRangeDialog(Activity activity)
+  public RecentRangeDialog(Activity activity, RecentRange range, OnRangeSetListener rangeListener)
   {
     super(activity);
-    this.activity = activity;
+    this.activity=activity;
+    this.range=range;
+    this.rangeListener=rangeListener;
   }
 
+  public interface OnRangeSetListener
+  {
+    public void onRangeSet(RecentRange range);
+  }
+  
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
@@ -61,9 +68,9 @@ public class RecentRangeDialog extends Dialog
     
     // Number field
     numberField=(EditText)findViewById(R.id.time_input);
-    if(null!=number)
+    if(null!=range.getValue())
     {
-      numberField.setText(String.valueOf(number));
+      numberField.setText(String.valueOf(range.getValue()));
     }
     
     // Unit spinner
@@ -73,14 +80,14 @@ public class RecentRangeDialog extends Dialog
       activity.getResources().getStringArray(R.array.time_range_units));
     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
     unitSpinner.setAdapter(adapter);
-    if(null==unit)
+    if(null==range.getUnit())
     {
       unitSpinner.setSelection(1);
     }
     else
     {
       CharSequence[] units=activity.getResources().getTextArray(R.array.time_range_units);
-      int index=Arrays.asList(units).indexOf(unit);
+      int index=Arrays.asList(units).indexOf(range.getUnit());
       unitSpinner.setSelection(index);
     }
     
@@ -97,23 +104,13 @@ public class RecentRangeDialog extends Dialog
     switch(v.getId())
     {
       case R.id.recent_range_dialog_ok:
-        ((TargetsActivity)activity).timeRangeDialogCallback(
+        rangeListener.onRangeSet(new RecentRange(
           Integer.valueOf(numberField.getText().toString()),
-          (String)unitSpinner.getSelectedItem());
+          (String)unitSpinner.getSelectedItem()));
         break;
       case R.id.recent_range_dialog_cancel:
         break;
     }
     dismiss();
-  }
-  
-  public void setNumber(Integer number)
-  {
-    this.number=number;
-  }
-  
-  public void setUnit(String unit)
-  {
-    this.unit=unit;
   }
 }

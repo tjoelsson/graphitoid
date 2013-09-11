@@ -16,9 +16,14 @@
 
 package com.tnc.android.graphite.models;
 
+import java.io.Serializable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-public class Target extends SimpleObservable<Target>
+
+public class Target extends SimpleObservable<Target> implements Parcelable, Serializable
 {
+  private static final long serialVersionUID=7280880856241072365L;
   private int id=-1;
   private String hash="";
   private String name="";
@@ -29,6 +34,15 @@ public class Target extends SimpleObservable<Target>
   private boolean placeholder=false;
   private boolean loaded=true;
 
+  public Target()
+  {
+  }
+  
+  public Target(Parcel in)
+  {
+    readFromParcel(in);
+  }
+  
   public int getId()
   {
     return id;
@@ -118,11 +132,62 @@ public class Target extends SimpleObservable<Target>
     this.expandable=t.isExpandable();
     notifyObservers(this);
   }
-
-  public boolean equals(Target t)
+  
+  @Override
+  public boolean equals(Object o)
   {
-    if(getHash().equals(t.getHash()))
+    if(o instanceof Target
+      && getName().equals(((Target)o).getName()))
+    {
       return true;
+    }
     return false;
   }
+  
+  @Override
+  public String toString()
+  {
+    return name;
+  }
+  
+  @Override
+  public int describeContents()
+  {
+    return 0;
+  }
+
+  @Override
+  public void writeToParcel(Parcel out, int flags)
+  {
+    out.writeInt(id);
+    out.writeString(hash);
+    out.writeString(name);
+    out.writeBooleanArray(new boolean[]{enabled, expandable, placeholder, loaded});
+  }
+  
+  private void readFromParcel(Parcel in)
+  {
+    id=in.readInt();
+    hash=in.readString();
+    name=in.readString();
+    boolean[] boolArray=new boolean[4];
+    in.readBooleanArray(boolArray);
+    enabled=boolArray[0];
+    expandable=boolArray[1];
+    placeholder=boolArray[2];
+    loaded=boolArray[3];
+  }
+  
+  public static final Parcelable.Creator<Target> CREATOR=new Creator<Target>()
+  {
+    public Target createFromParcel(Parcel source)
+    {
+      return new Target(source);
+    }
+
+    public Target[] newArray(int size)
+    {
+      return new Target[size];
+    }
+  };
 }

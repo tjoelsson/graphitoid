@@ -19,6 +19,8 @@
     android:title="@string/targets_menu_recent_range" />
   <item android:id="@+id/targets_menu_datetime"
     android:title="@string/targets_menu_datetime" />
+  <item android:id="@+id/targets_menu_saved"
+    android:title="@string/targets_menu_saved" />
   <item android:id="@+id/targets_menu_reload"
     android:title="@string/targets_menu_reload" />
   <item android:id="@+id/targets_menu_clear"

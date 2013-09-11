@@ -35,11 +35,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import com.tnc.android.graphite.R;
 import com.tnc.android.graphite.controllers.GraphController;
+import com.tnc.android.graphite.controllers.TargetsController;
 import com.tnc.android.graphite.models.DrawableGraph;
-import com.tnc.android.graphite.utils.ErrorMessage;
+import com.tnc.android.graphite.utils.UserNotification;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
 
 
@@ -106,6 +109,37 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback,
       case R.id.graph_menu_auto_refresh:
         controller.handleMessage(GraphController.MESSAGE_AUTO_REFRESH_DIALOG);
         break;
+      case R.id.graph_menu_save:
+        final EditText input = new EditText(this);
+        final AlertDialog saveDialog = new AlertDialog.Builder(this)
+          .setTitle(R.string.save_dialog_title)
+          .setView(input)
+          .setPositiveButton(R.string.dialog_positive, null)
+          .setNegativeButton(R.string.dialog_negative, null)
+          .create();
+        saveDialog.setOnShowListener(new DialogInterface.OnShowListener()
+        {
+          @Override
+          public void onShow(DialogInterface dialog)
+          {
+            Button b = saveDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            b.setOnClickListener(new View.OnClickListener()
+            {
+              @Override
+              public void onClick(View view)
+              {
+                String value = input.getText().toString();
+                if(!value.equals(""))
+                {
+                  controller.handleMessage(GraphController.MESSAGE_SAVE_GRAPH, value);
+                  saveDialog.dismiss();
+                }
+              }
+            });
+          }
+        });
+        saveDialog.show();
+        break;
       default:
         return super.onOptionsItemSelected(item);
     }
@@ -149,22 +183,29 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback,
         cancelDialog();
         return true;
       case GraphController.MESSAGE_FAIL_GO_BACK:
-        ErrorMessage.displayRaw(me, msg.obj.toString());
+        UserNotification.displayRaw(me, msg.obj.toString());
         this.finish();
+        return true;
+      case TargetsController.MESSAGE_FAIL_STAY:
+        UserNotification.displayRaw(me, msg.obj.toString());
         return true;
       case GraphController.MESSAGE_AUTO_REFRESH_DIALOG:
         AlertDialog.Builder builder = new AlertDialog.Builder(me);
         builder.setTitle(getResources().getString(R.string.auto_refresh_dialog_title))
           .setSingleChoiceItems(R.array.auto_refresh_display,
-            (Integer)msg.obj, new DialogInterface.OnClickListener() {
-              public void onClick(DialogInterface dialog, int which)
-              {
-                controller.handleMessage(GraphController.MESSAGE_SET_AUTO_REFRESH, which);
-                dialog.dismiss();
-              }
-        });
+            (Integer)msg.obj, new DialogInterface.OnClickListener()
+          {
+            public void onClick(DialogInterface dialog, int which)
+            {
+              controller.handleMessage(GraphController.MESSAGE_SET_AUTO_REFRESH, which);
+              dialog.dismiss();
+            }
+          });
         Dialog autoRefreshDialog = builder.create();
         autoRefreshDialog.show();
+        return true;
+      case GraphController.MESSAGE_NOTIFY_SAVED:
+        UserNotification.displayRaw(this, getString(R.string.graph_saved_message));
         return true;
     }
     return false;

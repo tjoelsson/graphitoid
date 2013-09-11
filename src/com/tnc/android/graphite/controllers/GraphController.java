@@ -19,6 +19,7 @@ package com.tnc.android.graphite.controllers;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -30,7 +31,11 @@ import android.view.WindowManager;
 import com.tnc.android.graphite.GraphiteApp;
 import com.tnc.android.graphite.R;
 import com.tnc.android.graphite.models.DrawableGraph;
+import com.tnc.android.graphite.models.GraphData;
 import com.tnc.android.graphite.models.GraphiteQuery;
+import com.tnc.android.graphite.models.RecentRange;
+import com.tnc.android.graphite.models.Target;
+import com.tnc.android.graphite.utils.GraphStorage;
 import com.tnc.android.graphite.utils.GraphiteConnection;
 
 
@@ -47,18 +52,21 @@ public class GraphController extends Controller
   public static final int MESSAGE_STOP_LOADING=4;
   public static final int MESSAGE_RELOAD=5;
   public static final int MESSAGE_FAIL_GO_BACK=6;
-  public static final int MESSAGE_CONFIG_UPDATE=7;
-  public static final int MESSAGE_START=8;
-  public static final int MESSAGE_STOP=9;
-  public static final int MESSAGE_AUTO_REFRESH_DIALOG=10;
-  public static final int MESSAGE_SET_AUTO_REFRESH=11;
-  
+  public static final int MESSAGE_FAIL_STAY=7;
+  public static final int MESSAGE_CONFIG_UPDATE=8;
+  public static final int MESSAGE_START=9;
+  public static final int MESSAGE_STOP=10;
+  public static final int MESSAGE_AUTO_REFRESH_DIALOG=11;
+  public static final int MESSAGE_SET_AUTO_REFRESH=12;
+  public static final int MESSAGE_SAVE_GRAPH=13;
+  public static final int MESSAGE_NOTIFY_SAVED=14;
+
   private String serverUrl;
   private DrawableGraph model;
-  private ArrayList<String> targetStrings;
+  private List<Target> targets;
   private Calendar intervalFrom=null;
   private Calendar intervalTo=null;
-  private String range=null;
+  private RecentRange range=null;
   private boolean graphDisplayed=false;
   private int autoRefreshInterval=0;
   private int[] autoRefreshValues;
@@ -67,7 +75,7 @@ public class GraphController extends Controller
   {
     this.model=model;
     setPrefs();
-    targetStrings=new ArrayList<String>();
+    targets=new ArrayList<Target>();
     autoRefreshValues=GraphiteApp.getContext().getResources()
       .getIntArray(R.array.auto_refresh_values);
   }
@@ -91,10 +99,10 @@ public class GraphController extends Controller
         return true;
       case MESSAGE_VIEW_READY:
         Bundle extras=(Bundle)data;
-        targetStrings=extras.getStringArrayList("targets");
+        targets=(ArrayList)extras.getParcelableArrayList("targets");
         intervalFrom=(Calendar)extras.getSerializable("from");
         intervalTo=(Calendar)extras.getSerializable("to");
-        range=extras.getString("range");
+        range=extras.getParcelable("range");
         return true;
       case MESSAGE_CONFIG_UPDATE:
         // TODO: use stored graph even if auto-refresh is enabled
@@ -127,10 +135,36 @@ public class GraphController extends Controller
           plotGraph(autoRefreshInterval);
         }
         return true;
+      case MESSAGE_SAVE_GRAPH:
+        final String graphName = (String)data;
+        workerHandler.post(new Runnable()
+        {
+          @Override
+          public void run()
+          {
+            try
+            {
+              GraphData graphData=new GraphData();
+              graphData.setTargets(targets);
+              graphData.setIntervalFrom(intervalFrom);
+              graphData.setIntervalTo(intervalTo);
+              graphData.setRange(range);
+              graphData.setName(graphName);
+              GraphStorage.getInstance().storeGraph(graphData);
+              notifyOutboxHandlers(MESSAGE_NOTIFY_SAVED, 0, 0, null);
+            }
+            catch(Exception e)
+            {
+              e.printStackTrace();
+              notifyOutboxHandlers(MESSAGE_FAIL_STAY, 0, 0, e);
+            }
+          }
+        });
+        return true;
     }
     return false;
   }
-
+  
   private void plotGraph()
   {
     plotGraph(0);
@@ -167,13 +201,13 @@ public class GraphController extends Controller
         workerHandler.postDelayed(new PlotRunnable(), autoRefreshInterval);
       }
       GraphiteQuery query=new GraphiteQuery();
-      for(String str : targetStrings)
+      for(Target t : targets)
       {
-        query.addTarget(str);
+        query.addTarget(t.getName());
       }
       if(null!=range)
       {
-        query.setRange(range);
+        query.setRange("" + range.getValue() + range.getUnit());
       }
       if(null!=intervalFrom&&null!=intervalTo)
       {
@@ -209,8 +243,8 @@ public class GraphController extends Controller
       );
       if(null!=graph)
       {
-        long cutoff = 60000000000L; // One minute in nanoseconds
-        long autoCutoff = 60000L; // One minute in milliseconds
+        long cutoff=60000000000L; // One minute in nanoseconds
+        long autoCutoff=60000L; // One minute in milliseconds
         if(System.nanoTime()-graph.getTimestamp()>=cutoff
           ||(0<autoRefreshInterval&&autoRefreshInterval<autoCutoff))
         {
