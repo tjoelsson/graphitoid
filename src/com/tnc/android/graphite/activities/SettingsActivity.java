@@ -17,6 +17,7 @@
 package com.tnc.android.graphite.activities;
 
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -35,8 +36,9 @@ import com.tnc.android.graphite.controllers.SettingsController;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
 
 
-public class SettingsActivity extends PreferenceActivity implements Handler.Callback, SwipeActivity
+public class SettingsActivity extends PreferenceActivity implements Handler.Callback
 {
+  Activity me=this;
   SettingsController controller;
 
   @Override
@@ -51,11 +53,20 @@ public class SettingsActivity extends PreferenceActivity implements Handler.Call
     controller.addOutboxHandler(new Handler(this));
     controller.handleMessage(SettingsController.MESSAGE_VIEW_READY, null);
     
-    SwipeGestureListener sgl=new SwipeGestureListener(this);
+    SwipeGestureListener sgl=new SwipeGestureListener()
+    {
+      @Override
+      public void onLeftSwipe()
+      {
+        Intent intent=new Intent(me, TargetsActivity.class);
+        startActivity(intent);
+      }
+    };
     final GestureDetector gestureDetector=new GestureDetector(sgl);
 
     View listView=this.findViewById(android.R.id.list);
-    listView.setOnTouchListener(new View.OnTouchListener() {
+    listView.setOnTouchListener(new View.OnTouchListener()
+    {
       public boolean onTouch(View v, MotionEvent event)
       {
         if(gestureDetector.onTouchEvent(event))
@@ -65,18 +76,6 @@ public class SettingsActivity extends PreferenceActivity implements Handler.Call
         return false;
       }
     });
-  }
-
-  @Override
-  public void onLeftSwipe()
-  {
-    Intent intent=new Intent(this, TargetsActivity.class);
-    startActivity(intent);
-  }
-
-  @Override
-  public void onRightSwipe()
-  {
   }
 
   @Override

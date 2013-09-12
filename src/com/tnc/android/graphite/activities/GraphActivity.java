@@ -42,14 +42,15 @@ import com.tnc.android.graphite.R;
 import com.tnc.android.graphite.controllers.GraphController;
 import com.tnc.android.graphite.controllers.TargetsController;
 import com.tnc.android.graphite.models.DrawableGraph;
-import com.tnc.android.graphite.utils.UserNotification;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
+import com.tnc.android.graphite.utils.UserNotification;
 
 
-public class GraphActivity extends FragmentActivity implements Handler.Callback, SwipeActivity
+public class GraphActivity extends FragmentActivity implements Handler.Callback
 {
   final static int DATE_TIME=104;
 
+  private Activity me=this;
   private GraphController controller;
   private DrawableGraph model;
   private ProgressDialog dialog;
@@ -72,8 +73,33 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback,
       this.getIntent().getExtras()
     );
 
-    SwipeGestureListener sgl=new SwipeGestureListener(this);
+    SwipeGestureListener sgl=new SwipeGestureListener()
+    {
+      @Override
+      public boolean onDown(MotionEvent e)
+      {
+        return true;
+      }
+      @Override
+      public void onRightSwipe()
+      {
+        me.finish();
+      }
+    };
     gestureDetector=new GestureDetector(sgl);
+    
+    View listView=this.findViewById(R.id.plainView);
+    listView.setOnTouchListener(new View.OnTouchListener()
+    {
+      public boolean onTouch(View v, MotionEvent event)
+      {
+        if(gestureDetector.onTouchEvent(event))
+        {
+          return true;
+        }
+        return false;
+      }
+    });
   }
 
   @Override
@@ -242,14 +268,5 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback,
         return false;
       }
     });
-  }
-
-  public void onLeftSwipe()
-  {
-  }
-
-  public void onRightSwipe()
-  {
-    this.finish();
   }
 }

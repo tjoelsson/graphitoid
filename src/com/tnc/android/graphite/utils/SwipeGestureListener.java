@@ -17,10 +17,8 @@
 package com.tnc.android.graphite.utils;
 
 
-import android.util.Log;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
-import com.tnc.android.graphite.activities.SwipeActivity;
 
 
 public class SwipeGestureListener extends SimpleOnGestureListener
@@ -29,51 +27,42 @@ public class SwipeGestureListener extends SimpleOnGestureListener
   private static final int SWIPE_MAX_OFF_PATH=200;
   private static final int SWIPE_THRESHOLD_VELOCITY=200;
 
-  private SwipeActivity activity;
-
-  public SwipeGestureListener(SwipeActivity a)
+  public SwipeGestureListener()
   {
     super();
-    activity=a;
   }
 
   @Override
   public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
     float velocityY)
   {
-    try
+    float diffAbs=Math.abs(e1.getY()-e2.getY());
+    float diff=e1.getX()-e2.getX();
+
+    if(diffAbs>SWIPE_MAX_OFF_PATH)
     {
-      float diffAbs=Math.abs(e1.getY()-e2.getY());
-      float diff=e1.getX()-e2.getX();
-
-      if(diffAbs>SWIPE_MAX_OFF_PATH)
-        return false;
-
-      // Left swipe
-      if(diff>SWIPE_MIN_DISTANCE
-        &&Math.abs(velocityX)>SWIPE_THRESHOLD_VELOCITY)
-      {
-        activity.onLeftSwipe();
-
-        // Right swipe
-      }
-      else if(-diff>SWIPE_MIN_DISTANCE
-        &&Math.abs(velocityX)>SWIPE_THRESHOLD_VELOCITY)
-      {
-        activity.onRightSwipe();
-      }
+      return super.onFling(e1, e2, velocityX, velocityY);
     }
-    catch(Exception e)
+    if(diff>SWIPE_MIN_DISTANCE
+      &&Math.abs(velocityX)>SWIPE_THRESHOLD_VELOCITY)
     {
-      Log.e("YourActivity", "Error on gestures");
+      onLeftSwipe();
+      return true;
     }
-    return false;
+    else if(-diff>SWIPE_MIN_DISTANCE
+      &&Math.abs(velocityX)>SWIPE_THRESHOLD_VELOCITY)
+    {
+      onRightSwipe();
+      return true;
+    }
+    return super.onFling(e1, e2, velocityX, velocityY);
+  }
+  
+  public void onRightSwipe()
+  {
   }
 
-  // It is necessary to return true from onDown for the onFling event to register
-  @Override
-  public boolean onDown(MotionEvent e)
+  public void onLeftSwipe()
   {
-    return true;
   }
 }

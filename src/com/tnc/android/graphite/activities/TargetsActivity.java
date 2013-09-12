@@ -36,8 +36,6 @@ import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.Window;
 import com.googlecode.android.widgets.DateSlider.DateSlider;
 import com.tnc.android.graphite.R;
@@ -46,12 +44,13 @@ import com.tnc.android.graphite.fragments.IntervalDialogFragment;
 import com.tnc.android.graphite.lists.TargetsTreeAdapter;
 import com.tnc.android.graphite.models.RecentRange;
 import com.tnc.android.graphite.models.Target;
-import com.tnc.android.graphite.utils.UserNotification;
 import com.tnc.android.graphite.utils.RecentRangeDialog;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
+import com.tnc.android.graphite.utils.UserNotification;
+import com.tnc.android.graphite.views.SwipeView;
 
 
-public class TargetsActivity extends FragmentActivity implements Handler.Callback, SwipeActivity
+public class TargetsActivity extends FragmentActivity implements Handler.Callback
 {
   final Activity me=this;
   private ArrayList<Target> targets;
@@ -76,30 +75,24 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
     manager=new InMemoryTreeStateManager<Target>();
     treeView=(TreeViewList)findViewById(R.id.mainTreeView);
 
-    SwipeGestureListener sgl=new SwipeGestureListener(this);
+    SwipeGestureListener sgl=new SwipeGestureListener()
+    {
+      @Override
+      public void onRightSwipe()
+      {
+        me.finish();
+      }
+      @Override
+      public void onLeftSwipe()
+      {
+        controller.handleMessage(TargetsController.MESSAGE_PLOT_GRAPH, selected);
+      }
+    };
     final GestureDetector gestureDetector=new GestureDetector(sgl);
 
-    View mainView=(View)findViewById(R.id.mainView);
-    mainView.setOnTouchListener(new View.OnTouchListener() {
-      public boolean onTouch(View v, MotionEvent event)
-      {
-        if(gestureDetector.onTouchEvent(event))
-        {
-          return true;
-        }
-        return false;
-      }
-    });
-    treeView.setOnTouchListener(new View.OnTouchListener() {
-      public boolean onTouch(View v, MotionEvent event)
-      {
-        if(gestureDetector.onTouchEvent(event))
-        {
-          return true;
-        }
-        return false;
-      }
-    });
+    SwipeView mainView=(SwipeView)findViewById(R.id.mainView);
+    mainView.setGestureDetector(gestureDetector);
+
     getTargets();
   }
 
@@ -298,16 +291,6 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
         return true;
     }
     return false;
-  }
-  
-  public void onLeftSwipe()
-  {
-    controller.handleMessage(TargetsController.MESSAGE_PLOT_GRAPH, selected);
-  }
-
-  public void onRightSwipe()
-  {
-    this.finish();
   }
 
   private int calcLevel(Target target)

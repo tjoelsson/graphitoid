@@ -98,11 +98,26 @@ public class TargetsTreeAdapter extends AbstractTreeViewAdapter<Target>
     final TreeNodeInfo<Target> treeNodeInfo)
   {
     final LinearLayout viewLayout=(LinearLayout)view;
-    final TextView descriptionView=(TextView)viewLayout
-      .findViewById(R.id.list_item_description);
-    descriptionView.setText(getDescription(treeNodeInfo.getId()));
-    final CheckBox box=(CheckBox)viewLayout
-      .findViewById(R.id.list_checkbox);
+    final TextView description;
+    final CheckBox box;
+
+    if(null==viewLayout.getTag())
+    {
+      ViewHolder holder=new ViewHolder();
+      description=(TextView)viewLayout
+        .findViewById(R.id.list_item_description);
+      box=(CheckBox)viewLayout
+        .findViewById(R.id.list_checkbox);      
+      holder.description=description;
+      holder.checkbox=box;
+      viewLayout.setTag(holder);
+    } else {
+      ViewHolder holder=(ViewHolder)viewLayout.getTag();
+      description=holder.description;
+      box=holder.checkbox;
+    }
+
+    description.setText(getDescription(treeNodeInfo.getId()));
     Target target=treeNodeInfo.getId();
     viewLayout.setVisibility(View.VISIBLE);
     if(target.isPlaceholder())
@@ -157,5 +172,11 @@ public class TargetsTreeAdapter extends AbstractTreeViewAdapter<Target>
       ((TargetsActivity)getActivity()).getMoreTargets(target);
     }
     super.expandCollapse(target);
+  }
+  
+  static class ViewHolder
+  {
+    TextView description;
+    CheckBox checkbox;
   }
 }
