@@ -21,10 +21,10 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.widget.ScrollView;
+import android.widget.LinearLayout;
 
 
-public class SwipeView extends ScrollView
+public class SwipeView extends LinearLayout
 {
   GestureDetector gestureDetector;
 
