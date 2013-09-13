@@ -29,6 +29,7 @@ android:layout_width="match_parent"
 android:layout_height="wrap_content"
 android:scrollbars="vertical"
 android:smoothScrollbar="true"
+android:fastScrollEnabled="true"
 app:indicator_gravity="right|center_vertical"
 />
 
