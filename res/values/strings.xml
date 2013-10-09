@@ -39,6 +39,6 @@
   <string name="save_dialog_title">Save Graph</string>
   <string name="dialog_positive">OK</string>
   <string name="dialog_negative">Cancel</string>
-  <string name="saved_dialog_title">Saved Graphs</string>
+  <string name="saved_dialog_delete">Delete</string>
   <string name="graph_saved_message">Graph saved</string>
 </resources>

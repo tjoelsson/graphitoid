@@ -50,10 +50,13 @@ public class GraphStorage
   {
     _retrieveGraphs();
     _graphs.addFirst(graph);
-    if(20 < _graphs.size())
-    {
-      _graphs.removeLast();
-    }
+    _saveGraphs();
+  }
+  
+  public void deleteGraph(int position) throws IOException, ClassNotFoundException
+  {
+    _retrieveGraphs();
+    _graphs.remove(position);
     _saveGraphs();
   }
   

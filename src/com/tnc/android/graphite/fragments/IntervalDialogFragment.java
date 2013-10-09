@@ -18,7 +18,6 @@ package com.tnc.android.graphite.fragments;
 
 
 import java.util.Calendar;
-import android.app.Activity;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -30,15 +29,13 @@ import com.tnc.android.graphite.utils.IntervalPickerSlider;
 public class IntervalDialogFragment extends DialogFragment
 {
   private Calendar cal=null;
-  private Activity activity;
   private String header;
   private DateSlider.OnDateSetListener mTimeListener;
 
-  public IntervalDialogFragment(Activity activity, Calendar cal,
-    String header, OnDateSetListener mTimeListener)
+  public IntervalDialogFragment(Calendar cal, String header,
+    OnDateSetListener mTimeListener)
   {
     super();
-    this.activity=activity;
     this.cal=cal;
     this.header=header;
     this.mTimeListener=mTimeListener;
@@ -47,6 +44,6 @@ public class IntervalDialogFragment extends DialogFragment
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
-    return new IntervalPickerSlider(activity, mTimeListener, cal, header);
+    return new IntervalPickerSlider(getActivity(), mTimeListener, cal, header);
   }
 }

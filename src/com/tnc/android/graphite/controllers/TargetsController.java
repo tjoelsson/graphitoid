@@ -19,8 +19,8 @@ package com.tnc.android.graphite.controllers;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.LinkedList;
 import java.util.List;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
@@ -32,7 +32,6 @@ import com.tnc.android.graphite.daos.TargetDao;
 import com.tnc.android.graphite.models.GraphData;
 import com.tnc.android.graphite.models.RecentRange;
 import com.tnc.android.graphite.models.Target;
-import com.tnc.android.graphite.utils.GraphStorage;
 import com.tnc.android.graphite.utils.GraphiteConnection;
 
 
@@ -53,7 +52,7 @@ public class TargetsController extends Controller
   public static final int MESSAGE_STOP_LOADING=7;
   public static final int MESSAGE_FAIL_GO_BACK=8;
   public static final int MESSAGE_FAIL_STAY=9;
-  public static final int MESSAGE_SAVED_GRAPH=10;
+//  public static final int MESSAGE_SAVED_GRAPH=10;
   public static final int MESSAGE_DISPLAY_SAVED=11;
   public static final int MESSAGE_SELECT_SAVED=12;
   public static final int MESSAGE_DATE_TIME=13;
@@ -62,6 +61,7 @@ public class TargetsController extends Controller
   public static final int MESSAGE_RECENT_RANGE=16;
   public static final int MESSAGE_SET_RECENT_RANGE=17;
   public static final int MESSAGE_PLOT_GRAPH=18;
+  public static final int ACTIVITY_SAVED_GRAPHS=101;
   
   final private int RANGE_TYPE_NONE=0;
   final private int RANGE_TYPE_RECENT=1;
@@ -122,59 +122,27 @@ public class TargetsController extends Controller
       case MESSAGE_UPDATE_ENABLED:
         updateEnabled((Integer)data);
         return true;
-      case MESSAGE_SAVED_GRAPH:
-        workerHandler.post(new Runnable()
-        {
-          @Override
-          public void run()
-          {
-            try
-            {
-              LinkedList<GraphData> graphs=GraphStorage.getInstance().getGraphs();
-              CharSequence[] graphList=new String[graphs.size()];
-              for(int i=0;i<graphs.size();++i)
-              {
-                graphList[i]=graphs.get(i).getName();
-              }
-              notifyOutboxHandlers(MESSAGE_SAVED_GRAPH, 0, 0, graphList);
-            }
-            catch(Exception e)
-            {
-              e.printStackTrace();
-              notifyOutboxHandlers(MESSAGE_FAIL_STAY, 0, 0, e);
-            }
-          }
-        });
-        return true;
       case MESSAGE_SELECT_SAVED:
-        final Integer which=(Integer)data;
+        Intent savedIntent=(Intent)data;
+        final GraphData graphData=(GraphData)savedIntent.getExtras().get("graph_data");
         workerHandler.post(new Runnable()
         {
           @Override
           public void run()
           {
-            try
+            List<Target> savedTargets=graphData.getTargets();
+            intervalFrom=graphData.getIntervalFrom();
+            intervalTo=graphData.getIntervalTo();
+            recentRange=graphData.getRange();
+            if(null!=intervalFrom)
             {
-              GraphData graph=GraphStorage.getInstance().getGraphs().get(which);
-              List<Target> savedTargets=graph.getTargets();
-              intervalFrom=graph.getIntervalFrom();
-              intervalTo=graph.getIntervalTo();
-              recentRange=graph.getRange();
-              if(null!=intervalFrom)
-              {
-                currentRangeType=RANGE_TYPE_DATES;
-              }
-              if(null!=recentRange)
-              {
-                currentRangeType=RANGE_TYPE_RECENT;
-              }
-              notifyOutboxHandlers(MESSAGE_DISPLAY_SAVED, 0, 0, savedTargets);
+              currentRangeType=RANGE_TYPE_DATES;
             }
-            catch(Exception e)
+            if(null!=recentRange)
             {
-              e.printStackTrace();
-              notifyOutboxHandlers(MESSAGE_FAIL_STAY, 0, 0, e);
+              currentRangeType=RANGE_TYPE_RECENT;
             }
+            notifyOutboxHandlers(MESSAGE_DISPLAY_SAVED, 0, 0, savedTargets);
           }
         });
         return true;

@@ -24,9 +24,7 @@ import pl.polidea.treeview.InMemoryTreeStateManager;
 import pl.polidea.treeview.TreeBuilder;
 import pl.polidea.treeview.TreeViewList;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -104,6 +102,19 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
   }
 
   @Override
+  protected void onActivityResult(int requestCode, int resultCode,
+    Intent data)
+  {
+    if(requestCode==TargetsController.ACTIVITY_SAVED_GRAPHS)
+    {
+      if(resultCode==RESULT_OK)
+      {
+        controller.handleMessage(TargetsController.MESSAGE_SELECT_SAVED, data);
+      }
+    }
+  }
+
+  @Override
   public boolean onCreateOptionsMenu(Menu menu)
   {
     MenuInflater inflater=getMenuInflater();
@@ -123,7 +134,8 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
         controller.handleMessage(TargetsController.MESSAGE_DATE_TIME);
         break;
       case R.id.targets_menu_saved:
-        controller.handleMessage(TargetsController.MESSAGE_SAVED_GRAPH);
+        Intent intent=new Intent(this, SavedActivity.class);
+        startActivityForResult(intent, TargetsController.ACTIVITY_SAVED_GRAPHS);
         break;
       case R.id.targets_menu_reload:
         controller.handleMessage(TargetsController.MESSAGE_RELOAD_TARGETS);
@@ -232,21 +244,6 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
       case TargetsController.MESSAGE_FAIL_STAY:
         UserNotification.displayRaw(me, msg.obj.toString());
         return true;
-      case TargetsController.MESSAGE_SAVED_GRAPH:
-        final CharSequence[] graphList=(CharSequence[])msg.obj;
-        AlertDialog.Builder builder=new AlertDialog.Builder(me)
-          .setTitle(getResources().getString(R.string.saved_dialog_title))
-          .setSingleChoiceItems(graphList, -1, new DialogInterface.OnClickListener()
-          {
-            public void onClick(DialogInterface dialog, int which)
-            {
-              controller.handleMessage(TargetsController.MESSAGE_SELECT_SAVED, which);
-              dialog.dismiss();
-            }
-          });
-        AlertDialog autoRefreshDialog=builder.create();
-        autoRefreshDialog.show();
-        return true;
       case TargetsController.MESSAGE_DISPLAY_SAVED:
         selected.clear();
         selected.addAll((List<Target>)msg.obj);
@@ -254,7 +251,7 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
         adapter.notifyDataSetChanged();
         return true;
       case TargetsController.MESSAGE_DATE_TIME_FROM:
-        IntervalDialogFragment fromDialog=new IntervalDialogFragment(this, (Calendar)msg.obj,
+        IntervalDialogFragment fromDialog=new IntervalDialogFragment((Calendar)msg.obj,
           getString(R.string.interval_from_header), new DateSlider.OnDateSetListener() {
             public void onDateSet(DateSlider view, Calendar selectedDate)
             {
@@ -264,7 +261,7 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
         fromDialog.show(getSupportFragmentManager(), "from_dialog");
         return true;
       case TargetsController.MESSAGE_DATE_TIME_TO:
-        IntervalDialogFragment toDialog=new IntervalDialogFragment(this, (Calendar)msg.obj,
+        IntervalDialogFragment toDialog=new IntervalDialogFragment((Calendar)msg.obj,
           getString(R.string.interval_to_header), new DateSlider.OnDateSetListener() {
             public void onDateSet(DateSlider view, Calendar selectedDate)
             {
