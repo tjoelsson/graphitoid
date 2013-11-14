@@ -38,6 +38,11 @@
             android:name=".activities.SavedActivity"
             android:theme="@android:style/Theme.Dialog" >
         </activity>
+        <activity
+            android:label="@string/app_name"
+            android:name=".activities.EditActivity"
+            android:theme="@android:style/Theme.Dialog" >
+        </activity>
     </application>
 
 </manifest>

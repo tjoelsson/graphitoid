@@ -16,9 +16,14 @@
 
 package com.tnc.android.graphite.models;
 
+
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Stack;
 import android.os.Parcel;
 import android.os.Parcelable;
+import com.tnc.android.graphite.functions.GraphFunction;
 
 
 public class Target extends SimpleObservable<Target> implements Parcelable, Serializable
@@ -29,6 +34,7 @@ public class Target extends SimpleObservable<Target> implements Parcelable, Seri
   private String name="";
   private boolean enabled=false;
   private boolean expandable=false;
+  private Stack<GraphFunction> functions=new Stack<GraphFunction>();
 
   //Not persistent variables
   private boolean placeholder=false;
@@ -93,6 +99,30 @@ public class Target extends SimpleObservable<Target> implements Parcelable, Seri
     notifyObservers(this);
   }
 
+  public void addFunction(GraphFunction function)
+  {
+    functions.push(function);
+  }
+  public void removeFunction()
+  {
+    if(!functions.empty())
+    {
+      functions.pop();
+    }
+  }
+  public Stack<GraphFunction> getFunctions()
+  {
+    if(null==functions)
+    {
+      functions=new Stack<GraphFunction>();
+    }
+    return functions;
+  }
+  public void setFunctions(Stack<GraphFunction> functions)
+  {
+    this.functions=functions;
+  }
+  
   // Not a persistent variable
   public boolean isPlaceholder()
   {
@@ -121,6 +151,7 @@ public class Target extends SimpleObservable<Target> implements Parcelable, Seri
     t.setName(name);
     t.setEnabled(enabled);
     t.setExpandable(expandable);
+    t.setFunctions(functions);
     return t;
   }
 
@@ -130,6 +161,7 @@ public class Target extends SimpleObservable<Target> implements Parcelable, Seri
     this.name=t.getName();
     this.enabled=t.isEnabled();
     this.expandable=t.isExpandable();
+    this.functions=t.getFunctions();
     notifyObservers(this);
   }
   
@@ -144,10 +176,20 @@ public class Target extends SimpleObservable<Target> implements Parcelable, Seri
     return false;
   }
   
+  public String getFullName()
+  {
+    String fullName=name;
+    for(GraphFunction func : getFunctions())
+    {
+      fullName=func.apply(fullName);
+    }
+    return fullName;
+  }
+  
   @Override
   public String toString()
   {
-    return name;
+    return getName();
   }
   
   @Override
@@ -163,6 +205,7 @@ public class Target extends SimpleObservable<Target> implements Parcelable, Seri
     out.writeString(hash);
     out.writeString(name);
     out.writeBooleanArray(new boolean[]{enabled, expandable, placeholder, loaded});
+    out.writeArray(getFunctions().toArray());
   }
   
   private void readFromParcel(Parcel in)
@@ -176,6 +219,12 @@ public class Target extends SimpleObservable<Target> implements Parcelable, Seri
     expandable=boolArray[1];
     placeholder=boolArray[2];
     loaded=boolArray[3];
+    List<Object> funcList=Arrays.asList(in.readArray(
+      GraphFunction.class.getClassLoader()));
+    for(Object obj : funcList)
+    {
+      functions.push((GraphFunction)obj);
+    }
   }
   
   public static final Parcelable.Creator<Target> CREATOR=new Creator<Target>()

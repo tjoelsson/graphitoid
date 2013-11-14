@@ -86,4 +86,9 @@ public class RecentRange implements Parcelable, Serializable
       return new RecentRange[size];
     }
   };
+  
+  public RecentRange clone()
+  {
+    return new RecentRange(Integer.valueOf(value), unit.toString());
+  }
 }

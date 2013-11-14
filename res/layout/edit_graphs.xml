@@ -16,16 +16,17 @@
 -->
 <LinearLayout
 xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:tools="http://schemas.android.com/tools"
-android:layout_width="wrap_content"
-android:layout_height="wrap_content"
-android:gravity="center|top"
+android:id="@+id/plainView"
+android:orientation="vertical"
+android:layout_width="fill_parent"
+android:layout_height="fill_parent"
 >
 
-<ListView
-android:id="@android:id/list"
-android:layout_height="match_parent"
+<fragment
+android:id="@+id/editFragment"
 android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:name="com.tnc.android.graphite.fragments.EditGraphsFragment"
 />
 
 </LinearLayout>

@@ -23,18 +23,20 @@ import java.util.List;
 import pl.polidea.treeview.InMemoryTreeStateManager;
 import pl.polidea.treeview.TreeBuilder;
 import pl.polidea.treeview.TreeViewList;
+import roboguice.activity.RoboFragmentActivity;
+import roboguice.inject.ContentView;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.FragmentActivity;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.Window;
+import com.google.inject.Inject;
 import com.googlecode.android.widgets.DateSlider.DateSlider;
 import com.tnc.android.graphite.R;
 import com.tnc.android.graphite.controllers.TargetsController;
@@ -42,14 +44,18 @@ import com.tnc.android.graphite.fragments.IntervalDialogFragment;
 import com.tnc.android.graphite.lists.TargetsTreeAdapter;
 import com.tnc.android.graphite.models.RecentRange;
 import com.tnc.android.graphite.models.Target;
+import com.tnc.android.graphite.utils.CurrentTargetList;
 import com.tnc.android.graphite.utils.RecentRangeDialog;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
 import com.tnc.android.graphite.utils.UserNotification;
 import com.tnc.android.graphite.views.SwipeView;
 
 
-public class TargetsActivity extends FragmentActivity implements Handler.Callback
+@ContentView(R.layout.targets_treeview)
+public class TargetsActivity extends RoboFragmentActivity implements Handler.Callback
 {
+  @Inject CurrentTargetList selected;
+  
   final Activity me=this;
   private ArrayList<Target> targets;
   private TargetsController controller;
@@ -57,14 +63,12 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
   private InMemoryTreeStateManager<Target> manager=null;
   private TreeViewList treeView;
   private TargetsTreeAdapter adapter;
-  private List<Target> selected=new ArrayList<Target>();
   
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
     requestWindowFeature(Window.FEATURE_NO_TITLE);
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.targets_treeview);
 
     targets=new ArrayList<Target>();
     controller=new TargetsController(targets);
@@ -100,12 +104,17 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
     super.onDestroy();
     controller.dispose();
   }
-
+  
   @Override
   protected void onActivityResult(int requestCode, int resultCode,
     Intent data)
   {
-    if(requestCode==TargetsController.ACTIVITY_SAVED_GRAPHS)
+    if(requestCode==TargetsController.ACTIVITY_GRAPH)
+    {
+      manager.refresh();
+      adapter.notifyDataSetChanged();
+    }
+    if(requestCode==TargetsController.ACTIVITY_SAVED)
     {
       if(resultCode==RESULT_OK)
       {
@@ -135,7 +144,7 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
         break;
       case R.id.targets_menu_saved:
         Intent intent=new Intent(this, SavedActivity.class);
-        startActivityForResult(intent, TargetsController.ACTIVITY_SAVED_GRAPHS);
+        startActivityForResult(intent, TargetsController.ACTIVITY_SAVED);
         break;
       case R.id.targets_menu_reload:
         controller.handleMessage(TargetsController.MESSAGE_RELOAD_TARGETS);
@@ -284,7 +293,7 @@ public class TargetsActivity extends FragmentActivity implements Handler.Callbac
       case TargetsController.MESSAGE_PLOT_GRAPH:
         Intent intent=new Intent(this, GraphActivity.class);
         intent.putExtras((Bundle)msg.obj);
-        startActivity(intent);
+        startActivityForResult(intent, TargetsController.ACTIVITY_GRAPH);
         return true;
     }
     return false;

@@ -50,7 +50,7 @@ public class SavedActivity extends FragmentActivity implements OnItemSelectedLis
       }
       
       SavedGraphsFragment fragment=(SavedGraphsFragment)getSupportFragmentManager()
-        .findFragmentById(R.id.fragment);
+        .findFragmentById(R.id.savedFragment);
       
       if(fragment!=null&&fragment.isInLayout())
       {
@@ -72,7 +72,8 @@ public class SavedActivity extends FragmentActivity implements OnItemSelectedLis
     {
       GraphData graphData=GraphStorage.getInstance().getGraphs().get(position);
       Intent intent=this.getIntent();
-      intent.putExtra("graph_data", graphData);
+      intent.putExtra("graph_data", graphData.clone());
+      
       this.setResult(RESULT_OK, intent);
     }
     catch(Exception e)

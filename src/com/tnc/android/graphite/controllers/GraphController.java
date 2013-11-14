@@ -19,7 +19,7 @@ package com.tnc.android.graphite.controllers;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
+import roboguice.RoboGuice;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -35,6 +35,7 @@ import com.tnc.android.graphite.models.GraphData;
 import com.tnc.android.graphite.models.GraphiteQuery;
 import com.tnc.android.graphite.models.RecentRange;
 import com.tnc.android.graphite.models.Target;
+import com.tnc.android.graphite.utils.CurrentTargetList;
 import com.tnc.android.graphite.utils.GraphStorage;
 import com.tnc.android.graphite.utils.GraphiteConnection;
 
@@ -60,10 +61,12 @@ public class GraphController extends Controller
   public static final int MESSAGE_SET_AUTO_REFRESH=12;
   public static final int MESSAGE_SAVE_GRAPH=13;
   public static final int MESSAGE_NOTIFY_SAVED=14;
+  public static final int MESSAGE_FINISHED_EDITING=15;
+  public static final int ACTIVITY_EDIT_GRAPHS=101;
 
   private String serverUrl;
   private DrawableGraph model;
-  private List<Target> targets;
+  private CurrentTargetList targets;
   private Calendar intervalFrom=null;
   private Calendar intervalTo=null;
   private RecentRange range=null;
@@ -75,9 +78,10 @@ public class GraphController extends Controller
   {
     this.model=model;
     setPrefs();
-    targets=new ArrayList<Target>();
     autoRefreshValues=GraphiteApp.getContext().getResources()
       .getIntArray(R.array.auto_refresh_values);
+    targets=RoboGuice.getInjector(GraphiteApp.getInstance())
+      .getInstance(CurrentTargetList.class);
   }
 
   @Override
@@ -99,7 +103,6 @@ public class GraphController extends Controller
         return true;
       case MESSAGE_VIEW_READY:
         Bundle extras=(Bundle)data;
-        targets=(ArrayList)extras.getParcelableArrayList("targets");
         intervalFrom=(Calendar)extras.getSerializable("from");
         intervalTo=(Calendar)extras.getSerializable("to");
         range=extras.getParcelable("range");
@@ -145,12 +148,13 @@ public class GraphController extends Controller
             try
             {
               GraphData graphData=new GraphData();
-              graphData.setTargets(targets);
+              graphData.setTargets((ArrayList<Target>)targets);
               graphData.setIntervalFrom(intervalFrom);
               graphData.setIntervalTo(intervalTo);
               graphData.setRange(range);
               graphData.setName(graphName);
-              GraphStorage.getInstance().storeGraph(graphData);
+              GraphStorage.getInstance().storeGraph(graphData.clone());
+              
               notifyOutboxHandlers(MESSAGE_NOTIFY_SAVED, 0, 0, null);
             }
             catch(Exception e)
@@ -160,6 +164,15 @@ public class GraphController extends Controller
             }
           }
         });
+        return true;
+      case MESSAGE_FINISHED_EDITING:
+        if(targets.isChanged())
+        {
+          targets.setChanged(false);
+          GraphiteApp.getInstance().getGraphHolder().clear();
+          graphDisplayed=false;
+          plotGraph();
+        }
         return true;
     }
     return false;
@@ -203,7 +216,7 @@ public class GraphController extends Controller
       GraphiteQuery query=new GraphiteQuery();
       for(Target t : targets)
       {
-        query.addTarget(t.getName());
+        query.addTarget(t.getFullName());
       }
       if(null!=range)
       {

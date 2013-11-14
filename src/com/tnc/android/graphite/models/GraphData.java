@@ -18,24 +18,24 @@ package com.tnc.android.graphite.models;
 
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
 
-public class GraphData implements Serializable
+public class GraphData implements Serializable, Cloneable
 {
   private static final long serialVersionUID=-8859412917355254945L;
-  private List<Target> targets;
+  private ArrayList<Target> targets;
   private Calendar intervalFrom;
   private Calendar intervalTo;
   private RecentRange range;
   private String name;
 
-  public List<Target> getTargets()
+  public ArrayList<Target> getTargets()
   {
     return targets;
   }
-  public void setTargets(List<Target> targets)
+  public void setTargets(ArrayList<Target> targets)
   {
     this.targets=targets;
   }
@@ -74,5 +74,25 @@ public class GraphData implements Serializable
   public void setName(String name)
   {
     this.name=name;
+  }
+  
+  public GraphData clone()
+  {
+    GraphData gd=new GraphData();
+    gd.setName(name.toString());
+    gd.setTargets((ArrayList<Target>)targets.clone());
+    if(null!=intervalFrom)
+    {
+      gd.setIntervalFrom((Calendar)intervalFrom.clone());
+    }
+    if(null!=intervalTo)
+    {
+      gd.setIntervalTo((Calendar)intervalTo.clone());
+    }
+    if(null!=range)
+    {
+      gd.setRange(range.clone());
+    }
+    return gd;
   }
 }

@@ -61,7 +61,8 @@ public class TargetsController extends Controller
   public static final int MESSAGE_RECENT_RANGE=16;
   public static final int MESSAGE_SET_RECENT_RANGE=17;
   public static final int MESSAGE_PLOT_GRAPH=18;
-  public static final int ACTIVITY_SAVED_GRAPHS=101;
+  public static final int ACTIVITY_GRAPH=101;
+  public static final int ACTIVITY_SAVED=102;
   
   final private int RANGE_TYPE_NONE=0;
   final private int RANGE_TYPE_RECENT=1;
@@ -142,6 +143,7 @@ public class TargetsController extends Controller
             {
               currentRangeType=RANGE_TYPE_RECENT;
             }
+            
             notifyOutboxHandlers(MESSAGE_DISPLAY_SAVED, 0, 0, savedTargets);
           }
         });
@@ -368,7 +370,6 @@ public class TargetsController extends Controller
       public void run()
       {
         Bundle plotBundle=new Bundle();
-        plotBundle.putParcelableArrayList("targets", selected);
         switch(currentRangeType)
         {
           case RANGE_TYPE_RECENT:

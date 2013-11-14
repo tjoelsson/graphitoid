@@ -22,6 +22,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
@@ -117,6 +118,19 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback
   }
   
   @Override
+  protected void onActivityResult(int requestCode, int resultCode,
+    Intent data)
+  {
+    if(requestCode==GraphController.ACTIVITY_EDIT_GRAPHS)
+    {
+      if(resultCode==RESULT_OK)
+      {
+        controller.handleMessage(GraphController.MESSAGE_FINISHED_EDITING, data);
+      }
+    }
+  }
+  
+  @Override
   public boolean onCreateOptionsMenu(Menu menu)
   {
     MenuInflater inflater=getMenuInflater();
@@ -127,6 +141,7 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback
   @Override
   public boolean onOptionsItemSelected(MenuItem item)
   {
+    // TODO move to controller
     switch(item.getItemId())
     {
       case R.id.graph_menu_reload:
@@ -134,6 +149,10 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback
         break;
       case R.id.graph_menu_auto_refresh:
         controller.handleMessage(GraphController.MESSAGE_AUTO_REFRESH_DIALOG);
+        break;
+      case R.id.graph_menu_edit:
+        Intent editIntent=new Intent(this, EditActivity.class);
+        startActivityForResult(editIntent, GraphController.ACTIVITY_EDIT_GRAPHS);
         break;
       case R.id.graph_menu_save:
         final EditText input = new EditText(this);
@@ -239,7 +258,8 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback
 
   private void cancelDialog()
   {
-    runOnUiThread(new Runnable() {
+    runOnUiThread(new Runnable()
+    {
       @Override
       public void run()
       {
