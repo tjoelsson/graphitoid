@@ -32,12 +32,13 @@
     android:layout_width="250dp"
     android:layout_height="match_parent"
     android:layout_gravity="right"
-    android:background="#222"
+    android:background="#333"
   >
     <fragment
       android:id="@+id/drawerEditFragment"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
+      android:cacheColorHint="@android:color/transparent"
       android:name="com.tnc.android.graphite.fragments.EditGraphsFragment"
     />
   </LinearLayout>

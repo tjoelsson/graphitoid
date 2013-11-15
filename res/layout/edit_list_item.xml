@@ -22,4 +22,5 @@ android:layout_height="wrap_content"
 android:minHeight="60dp"
 android:padding="10dp"
 android:gravity="center_vertical"
+android:background="#111"
 />
