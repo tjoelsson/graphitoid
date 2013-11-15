@@ -57,6 +57,22 @@ public class EditGraphsFragment extends RoboListFragment
   private ArrayAdapter<Target> adapter;
   private ContextMenu contextMenu;
   private AdapterContextMenuInfo menuInfo;
+  private OnUpdatedListener onUpdatedListener;
+  
+  public interface OnUpdatedListener
+  {
+    public void onUpdated();
+  }
+  
+  public void setOnUpdatedListener(OnUpdatedListener onUpdatedListener)
+  {
+    this.onUpdatedListener=onUpdatedListener;
+  }
+  
+  public void dataUpdated()
+  {
+    adapter.notifyDataSetChanged();
+  }
   
   @Override
   public void onCreate(Bundle savedInstanceState)
@@ -133,6 +149,10 @@ public class EditGraphsFragment extends RoboListFragment
         list.remove(menuInfo.position);
         adapter.notifyDataSetChanged();
         list.setChanged(true);
+        if(null!=onUpdatedListener)
+        {
+          onUpdatedListener.onUpdated();
+        }
         return true;
 
       // Fix for sub-sub-menus
@@ -160,7 +180,8 @@ public class EditGraphsFragment extends RoboListFragment
       // Transform
       case R.id.edit_context_menu_function_scale:
         _singleParameterFunction("scale", menuInfo.position,
-          R.string.function_instructions_scale, InputType.TYPE_NUMBER_FLAG_DECIMAL);
+          R.string.function_instructions_scale,
+          InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         return true;
       case R.id.edit_context_menu_function_derivative:
         _applyFunction(new NoParameterFunction("derivative"), menuInfo.position);
@@ -196,7 +217,8 @@ public class EditGraphsFragment extends RoboListFragment
         return true;
       case R.id.edit_context_menu_function_as_percent:
         _singleParameterFunction("asPercent", menuInfo.position,
-          R.string.function_instructions_as_percent, InputType.TYPE_NUMBER_FLAG_DECIMAL, true);
+          R.string.function_instructions_as_percent,
+          InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL, true);
         return true;
 
       case R.id.edit_context_menu_undo:
@@ -204,6 +226,10 @@ public class EditGraphsFragment extends RoboListFragment
         target.removeFunction();
         adapter.notifyDataSetChanged();
         list.setChanged(true);
+        if(null!=onUpdatedListener)
+        {
+          onUpdatedListener.onUpdated();
+        }
         return true;
     }
     
@@ -275,6 +301,10 @@ public class EditGraphsFragment extends RoboListFragment
     target.addFunction(function);
     adapter.notifyDataSetChanged();
     list.setChanged(true);
+    if(null!=onUpdatedListener)
+    {
+      onUpdatedListener.onUpdated();
+    }
   }
   
   interface FunctionInputCallback

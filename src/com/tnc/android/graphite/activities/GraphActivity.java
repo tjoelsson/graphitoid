@@ -17,6 +17,10 @@
 package com.tnc.android.graphite.activities;
 
 
+import roboguice.activity.RoboFragmentActivity;
+import roboguice.inject.ContentView;
+import roboguice.inject.InjectFragment;
+import roboguice.inject.InjectView;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -27,7 +31,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.FragmentActivity;
+import android.support.v4.widget.DrawerLayout;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -42,14 +46,18 @@ import android.widget.ImageView;
 import com.tnc.android.graphite.R;
 import com.tnc.android.graphite.controllers.GraphController;
 import com.tnc.android.graphite.controllers.TargetsController;
+import com.tnc.android.graphite.fragments.EditGraphsFragment;
 import com.tnc.android.graphite.models.DrawableGraph;
 import com.tnc.android.graphite.utils.SwipeGestureListener;
 import com.tnc.android.graphite.utils.UserNotification;
 
 
-public class GraphActivity extends FragmentActivity implements Handler.Callback
+@ContentView(R.layout.graph)
+public class GraphActivity extends RoboFragmentActivity implements Handler.Callback
 {
-  final static int DATE_TIME=104;
+  @InjectView(R.id.graphDrawerLayout) DrawerLayout layout;
+  @InjectView(R.id.graphImageView) ImageView imageView;
+  @InjectFragment(R.id.drawerEditFragment) EditGraphsFragment fragment;
 
   private Activity me=this;
   private GraphController controller;
@@ -60,12 +68,11 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback
   @Override
   public void onCreate(Bundle savedInstanceState)
   {
-    super.onCreate(savedInstanceState);
     requestWindowFeature(Window.FEATURE_NO_TITLE);
+    super.onCreate(savedInstanceState);
     this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
       WindowManager.LayoutParams.FLAG_FULLSCREEN);
-    setContentView(R.layout.plain);
-    
+
     model = new DrawableGraph();
     controller=new GraphController(model);
     controller.addOutboxHandler(new Handler(this));
@@ -73,6 +80,15 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback
       GraphController.MESSAGE_VIEW_READY,
       this.getIntent().getExtras()
     );
+
+    fragment.setOnUpdatedListener(new EditGraphsFragment.OnUpdatedListener()
+    {
+      @Override
+      public void onUpdated()
+      {
+        controller.handleMessage(GraphController.MESSAGE_FINISHED_EDITING);
+      }
+    });
 
     SwipeGestureListener sgl=new SwipeGestureListener()
     {
@@ -89,8 +105,7 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback
     };
     gestureDetector=new GestureDetector(sgl);
     
-    View listView=this.findViewById(R.id.plainView);
-    listView.setOnTouchListener(new View.OnTouchListener()
+    imageView.setOnTouchListener(new View.OnTouchListener()
     {
       public boolean onTouch(View v, MotionEvent event)
       {
@@ -126,6 +141,7 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback
       if(resultCode==RESULT_OK)
       {
         controller.handleMessage(GraphController.MESSAGE_FINISHED_EDITING, data);
+        fragment.dataUpdated(); // Because targets can be edited in two places
       }
     }
   }
@@ -151,6 +167,7 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback
         controller.handleMessage(GraphController.MESSAGE_AUTO_REFRESH_DIALOG);
         break;
       case R.id.graph_menu_edit:
+        layout.closeDrawers();
         Intent editIntent=new Intent(this, EditActivity.class);
         startActivityForResult(editIntent, GraphController.ACTIVITY_EDIT_GRAPHS);
         break;
@@ -273,20 +290,7 @@ public class GraphActivity extends FragmentActivity implements Handler.Callback
 
   private void plotGraph()
   {
-    ImageView graphView = new ImageView(this);
-    graphView.setImageDrawable(model.getImage());
-    graphView.setScaleType(ImageView.ScaleType.FIT_XY);
-    setContentView(graphView);
-    
-    graphView.setOnTouchListener(new View.OnTouchListener() {
-      public boolean onTouch(View v, MotionEvent event)
-      {
-        if(gestureDetector.onTouchEvent(event))
-        {
-          return true;
-        }
-        return false;
-      }
-    });
+    imageView.setImageDrawable(model.getImage());
+    imageView.setScaleType(ImageView.ScaleType.FIT_XY);
   }
 }

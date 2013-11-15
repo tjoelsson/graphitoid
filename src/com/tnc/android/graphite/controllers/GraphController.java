@@ -170,7 +170,7 @@ public class GraphController extends Controller
         {
           targets.setChanged(false);
           GraphiteApp.getInstance().getGraphHolder().clear();
-          graphDisplayed=false;
+          graphDisplayed=true;
           plotGraph();
         }
         return true;
