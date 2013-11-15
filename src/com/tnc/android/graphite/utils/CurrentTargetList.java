@@ -36,4 +36,14 @@ public class CurrentTargetList extends ArrayList<Target>
   {
     this.changed=changed;
   }
+  
+  public CurrentTargetList clone()
+  {
+    CurrentTargetList list=new CurrentTargetList();
+    for(Target t : this)
+    {
+      list.add(t.clone());
+    }
+    return list;
+  }
 }

@@ -148,12 +148,12 @@ public class GraphController extends Controller
             try
             {
               GraphData graphData=new GraphData();
-              graphData.setTargets((ArrayList<Target>)targets);
+              graphData.setTargets((ArrayList<Target>)targets.clone());
               graphData.setIntervalFrom(intervalFrom);
               graphData.setIntervalTo(intervalTo);
               graphData.setRange(range);
               graphData.setName(graphName);
-              GraphStorage.getInstance().storeGraph(graphData.clone());
+              GraphStorage.getInstance().storeGraph(graphData);
               
               notifyOutboxHandlers(MESSAGE_NOTIFY_SAVED, 0, 0, null);
             }

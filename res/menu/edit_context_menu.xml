@@ -16,26 +16,26 @@
 -->
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-<!--   <item android:id="@+id/edit_context_menu_add"
+<!--  <item android:id="@+id/edit_context_menu_add"
     android:title="@string/edit_context_menu_add" /> -->
-<!--   <item android:id="@+id/edit_context_menu_edit"
+<!--  <item android:id="@+id/edit_context_menu_edit"
     android:title="@string/edit_context_menu_edit" /> -->
   <item android:id="@+id/edit_context_menu_remove"
     android:title="@string/edit_context_menu_remove" />
   <item android:id="@+id/edit_context_menu_apply"
     android:title="@string/edit_context_menu_apply">
-  	<menu>
-<!--   	  <item android:id="@+id/edit_context_menu_function_combine_redirect"
-  	    android:title="@string/edit_context_menu_function_combine" /> -->
-  	  <item android:id="@+id/edit_context_menu_function_transform_redirect"
-  	    android:title="@string/edit_context_menu_function_transform" />
-<!--       <item android:id="@+id/edit_context_menu_function_calculate_redirect"
-  	    android:title="@string/edit_context_menu_function_calculate" /> -->
-<!--       <item android:id="@+id/edit_context_menu_function_filter_redirect"
-  	    android:title="@string/edit_context_menu_function_filter" /> -->
-<!--   	  <item android:id="@+id/edit_context_menu_function_special_redirect"
-  	    android:title="@string/edit_context_menu_function_special" /> -->
-  	</menu>
+    <menu>
+<!--     <item android:id="@+id/edit_context_menu_function_combine_redirect"
+        android:title="@string/edit_context_menu_function_combine" /> -->
+      <item android:id="@+id/edit_context_menu_function_transform_redirect"
+        android:title="@string/edit_context_menu_function_transform" />
+      <item android:id="@+id/edit_context_menu_function_calculate_redirect"
+        android:title="@string/edit_context_menu_function_calculate" />
+<!--     <item android:id="@+id/edit_context_menu_function_filter_redirect"
+        android:title="@string/edit_context_menu_function_filter" /> -->
+<!--     <item android:id="@+id/edit_context_menu_function_special_redirect"
+        android:title="@string/edit_context_menu_function_special" /> -->
+    </menu>
   </item>
   <item android:id="@+id/edit_context_menu_undo"
     android:title="@string/edit_context_menu_undo" />
@@ -44,13 +44,36 @@
     android:title="@string/edit_context_menu_function_transform"
     android:visible="false">
     <menu>
-  	  <item android:id="@+id/edit_context_menu_function_derivative"
-  	  	android:title="@string/edit_context_menu_function_derivative" />
-  	  <item android:id="@+id/edit_context_menu_function_integral"
-  	  	android:title="@string/edit_context_menu_function_integral" />
-  	  <item android:id="@+id/edit_context_menu_function_absolute"
-  	  	android:title="@string/edit_context_menu_function_absolute" />
-  	</menu>
+      <item android:id="@+id/edit_context_menu_function_scale"
+        android:title="@string/edit_context_menu_function_scale" />
+      <item android:id="@+id/edit_context_menu_function_derivative"
+        android:title="@string/edit_context_menu_function_derivative" />
+      <item android:id="@+id/edit_context_menu_function_integral"
+        android:title="@string/edit_context_menu_function_integral" />
+      <item android:id="@+id/edit_context_menu_function_absolute"
+        android:title="@string/edit_context_menu_function_absolute" />
+    </menu>
+  </item>
+
+  <item android:id="@+id/edit_context_menu_function_calculate"
+    android:title="@string/edit_context_menu_function_calculate"
+    android:visible="false">
+    <menu>
+      <item android:id="@+id/edit_context_menu_function_moving_average"
+        android:title="@string/edit_context_menu_function_moving_average" />
+      <item android:id="@+id/edit_context_menu_function_moving_median"
+        android:title="@string/edit_context_menu_function_moving_median" />
+      <item android:id="@+id/edit_context_menu_function_moving_standard_deviation"
+        android:title="@string/edit_context_menu_function_moving_standard_deviation" />
+      <item android:id="@+id/edit_context_menu_function_holtwinters_forecast"
+        android:title="@string/edit_context_menu_function_holtwinters_forecast" />
+      <item android:id="@+id/edit_context_menu_function_holtwinters_confidence_bands"
+        android:title="@string/edit_context_menu_function_holtwinters_confidence_bands" />
+      <item android:id="@+id/edit_context_menu_function_holtwinters_aberration"
+        android:title="@string/edit_context_menu_function_holtwinters_aberration" />
+      <item android:id="@+id/edit_context_menu_function_as_percent"
+        android:title="@string/edit_context_menu_function_as_percent" />
+    </menu>
   </item>
 
 </menu>

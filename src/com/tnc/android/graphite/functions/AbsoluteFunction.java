@@ -20,11 +20,12 @@ package com.tnc.android.graphite.functions;
 import java.io.Serializable;
 
 
+@Deprecated
 public class AbsoluteFunction implements GraphFunction, Serializable
 {
   @Override
   public String apply(String target)
   {
-    return "absolute(" + target + ")";
+    return "absolute("+target+")";
   }
 }

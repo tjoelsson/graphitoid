@@ -23,10 +23,9 @@ import pl.polidea.treeview.TreeNodeInfo;
 import pl.polidea.treeview.TreeStateManager;
 import android.app.Activity;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.tnc.android.graphite.R;
@@ -38,33 +37,29 @@ public class TargetsTreeAdapter extends AbstractTreeViewAdapter<Target>
 {
   private final List<Target> selected;
 
-  private final OnCheckedChangeListener onCheckedChange=
-    new OnCheckedChangeListener()
-    {
-      @Override
-      public void onCheckedChanged(final CompoundButton buttonView,
-        final boolean isChecked)
-      {
-        final Target id=(Target)buttonView.getTag();
-        changeSelected(isChecked, id);
-      }
-    };
-
-  private void changeSelected(final boolean isChecked, final Target id)
+  private final OnClickListener onClick=new OnClickListener()
   {
-    if(isChecked)
+    @Override
+    public void onClick(View view)
     {
-      if(!selected.contains(id))
+      CheckBox cb=(CheckBox)view;
+      Target target=(Target)view.getTag();
+      if(cb.isChecked()){
+        if(!selected.contains(target))
+        {
+          selected.add(target);
+        }
+      }
+      else
       {
-        selected.add(id);
+        selected.remove(target);
+        
+        // Remove functions when unchecking the target
+        target.removeAllFunctions();
       }
     }
-    else
-    {
-      selected.remove(id);
-    }
-  }
-
+  };
+    
   public TargetsTreeAdapter(final Activity activity,
     final List<Target> selected,
     final TreeStateManager<Target> treeStateManager,
@@ -133,7 +128,7 @@ public class TargetsTreeAdapter extends AbstractTreeViewAdapter<Target>
       box.setTag(target); // has to be set before calling setChecked
       box.setVisibility(View.VISIBLE);
       box.setChecked(selected.contains(target));
-      box.setOnCheckedChangeListener(onCheckedChange);
+      box.setOnClickListener(onClick);
     }
     return viewLayout;
   }

@@ -20,11 +20,12 @@ package com.tnc.android.graphite.functions;
 import java.io.Serializable;
 
 
+@Deprecated
 public class DerivativeFunction implements GraphFunction, Serializable
 {
   @Override
   public String apply(String target)
   {
-    return "derivative(" + target + ")";
+    return "derivative("+target+")";
   }
 }

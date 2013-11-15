@@ -26,7 +26,8 @@ import android.os.Parcelable;
 import com.tnc.android.graphite.functions.GraphFunction;
 
 
-public class Target extends SimpleObservable<Target> implements Parcelable, Serializable
+public class Target extends SimpleObservable<Target>
+  implements Parcelable, Serializable, Cloneable
 {
   private static final long serialVersionUID=7280880856241072365L;
   private int id=-1;
@@ -110,6 +111,10 @@ public class Target extends SimpleObservable<Target> implements Parcelable, Seri
       functions.pop();
     }
   }
+  public void removeAllFunctions()
+  {
+    functions.removeAllElements();
+  }
   public Stack<GraphFunction> getFunctions()
   {
     if(null==functions)
@@ -151,7 +156,7 @@ public class Target extends SimpleObservable<Target> implements Parcelable, Seri
     t.setName(name);
     t.setEnabled(enabled);
     t.setExpandable(expandable);
-    t.setFunctions(functions);
+    t.setFunctions((Stack<GraphFunction>)functions.clone());
     return t;
   }
 

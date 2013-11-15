@@ -39,9 +39,17 @@
   <string name="edit_context_menu_function_calculate">Calculate</string>
   <string name="edit_context_menu_function_filter">Filter</string>
   <string name="edit_context_menu_function_special">Special</string>
+  <string name="edit_context_menu_function_scale">Scale</string>
   <string name="edit_context_menu_function_derivative">Derivative</string>
   <string name="edit_context_menu_function_integral">Integral</string>
   <string name="edit_context_menu_function_absolute">Absolute Value</string>
+  <string name="edit_context_menu_function_moving_average">Moving Average</string>
+  <string name="edit_context_menu_function_moving_median">Moving Median</string>
+  <string name="edit_context_menu_function_moving_standard_deviation">Moving Standard Deviation</string>
+  <string name="edit_context_menu_function_holtwinters_forecast">Holt-Winters Forecast</string>
+  <string name="edit_context_menu_function_holtwinters_confidence_bands">Holt-Winters Confidence Bands</string>
+  <string name="edit_context_menu_function_holtwinters_aberration">Holt-Winters Aberration</string>
+  <string name="edit_context_menu_function_as_percent">As Percent</string>
   <string name="set_preferences">Settings</string>
   <string name="connection_error">Connection failed. Try changing the server URL.</string>
   <string name="update_settings_error">Something went wrong. Check settings.</string>
@@ -55,4 +63,9 @@
   <string name="dialog_negative">Cancel</string>
   <string name="saved_dialog_delete">Delete</string>
   <string name="graph_saved_message">Graph saved</string>
+  <string name="function_instructions_scale">Please enter a scale factor</string>
+  <string name="function_instructions_moving_average">Moving average for the last ___ data points</string>
+  <string name="function_instructions_moving_median">Moving median for the last ___ data points</string>
+  <string name="function_instructions_moving_standard_deviation">Moving standard deviation for the last ___ data points</string>
+  <string name="function_instructions_as_percent">Please enter the value that corresponds to 100% or leave blank to use the total</string>
 </resources>

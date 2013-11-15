@@ -20,12 +20,30 @@ package com.tnc.android.graphite.functions;
 import java.io.Serializable;
 
 
-@Deprecated
-public class IntegralFunction implements GraphFunction, Serializable
+public class SingleParameterFunction implements GraphFunction, Serializable
 {
+  private String functionName;
+  private String param;
+  
+  public SingleParameterFunction(String functionName, String param)
+  {
+    this.functionName=functionName;
+    this.param=param;
+  }
+  
   @Override
   public String apply(String target)
   {
-    return "integral("+target+")";
+    String retVal;
+    if(0==param.length())
+    {
+      // Some functions allow the parameter to be empty
+      retVal=functionName+"("+target+")";
+    }
+    else
+    {
+      retVal=functionName+"("+target+","+param+")";
+    }
+    return retVal;
   }
 }
